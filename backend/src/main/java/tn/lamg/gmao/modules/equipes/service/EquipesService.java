@@ -7,6 +7,7 @@ import tn.lamg.gmao.service.ResourceService;
 
 @Service
 public class EquipesService extends AbstractModuleResourceService {
+
     public EquipesService(EquipesRepository repository, ResourceService resources) {
         super(repository, resources);
     }

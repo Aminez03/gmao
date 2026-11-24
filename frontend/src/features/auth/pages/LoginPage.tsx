@@ -7,7 +7,13 @@ import { api, errorText } from '../../../services/api';
 type TurnstileApi = {
   render: (
     container: HTMLElement,
-    options: { sitekey: string; callback: (token: string) => void; 'expired-callback': () => void; 'error-callback': () => void; theme: 'auto' },
+    options: {
+      sitekey: string;
+      callback: (token: string) => void;
+      'expired-callback': () => void;
+      'error-callback': () => void;
+      theme: 'auto';
+    },
   ) => string;
   reset: (widgetId?: string) => void;
 };
@@ -200,7 +206,9 @@ export default function Login() {
                 type="submit"
                 variant="contained"
                 size="large"
-                disabled={busy || (!reset && !forgot && Boolean(turnstileSiteKey) && !turnstileReady)}
+                disabled={
+                  busy || (!reset && !forgot && Boolean(turnstileSiteKey) && !turnstileReady)
+                }
               >
                 {busy
                   ? 'Traitement…'

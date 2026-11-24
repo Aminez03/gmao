@@ -277,7 +277,10 @@ public class ResourceService {
     }
 
     void defaults(BaseEntity e) {
-        rules.orderedStream().filter(rule -> rule.supports(e)).forEach(rule -> rule.defaults(e));
+        rules
+            .orderedStream()
+            .filter(rule -> rule.supports(e))
+            .forEach(rule -> rule.defaults(e));
         if (e instanceof Asset a) {
             if (a.status == null) a.status = "EN_SERVICE";
             a.qrToken = UUID.randomUUID();
@@ -331,7 +334,10 @@ public class ResourceService {
     }
 
     void editable(BaseEntity e) {
-        rules.orderedStream().filter(rule -> rule.supports(e)).forEach(rule -> rule.editable(e));
+        rules
+            .orderedStream()
+            .filter(rule -> rule.supports(e))
+            .forEach(rule -> rule.editable(e));
         if (e instanceof Checklist c) ApiException.require(
             !Boolean.TRUE.equals(c.published),
             "IMMUTABLE_VERSION",
@@ -360,7 +366,10 @@ public class ResourceService {
     }
 
     public void check(BaseEntity e) {
-        rules.orderedStream().filter(rule -> rule.supports(e)).forEach(rule -> rule.validate(e));
+        rules
+            .orderedStream()
+            .filter(rule -> rule.supports(e))
+            .forEach(rule -> rule.validate(e));
         var violations = validator.validate(e);
         if (!violations.isEmpty()) throw new ApiException(
             422,
@@ -425,7 +434,11 @@ public class ResourceService {
             seen.add(a.id);
             var parent = a.parentId;
             while (parent != null) {
-                ApiException.require(seen.add(parent), "ASSET_CYCLE", "Cycle Ã©quipement interdit.");
+                ApiException.require(
+                    seen.add(parent),
+                    "ASSET_CYCLE",
+                    "Cycle Ã©quipement interdit."
+                );
                 parent = store.find(Asset.class, parent).parentId;
             }
         }

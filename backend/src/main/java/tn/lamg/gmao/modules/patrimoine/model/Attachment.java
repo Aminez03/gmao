@@ -32,5 +32,4 @@ public class Attachment extends BaseEntity {
     @NotNull
     @Column(name = "size")
     public Long size;
-
 }

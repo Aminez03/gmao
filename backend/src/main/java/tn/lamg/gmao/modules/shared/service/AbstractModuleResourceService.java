@@ -7,10 +7,14 @@ import tn.lamg.gmao.service.ResourceService;
 
 /** Keeps shared CRUD mechanics in one place and gives each module an explicit boundary. */
 public abstract class AbstractModuleResourceService implements ModuleResourceService {
+
     private final ModuleRepository repository;
     private final ResourceService resources;
 
-    protected AbstractModuleResourceService(ModuleRepository repository, ResourceService resources) {
+    protected AbstractModuleResourceService(
+        ModuleRepository repository,
+        ResourceService resources
+    ) {
         this.repository = repository;
         this.resources = resources;
     }
@@ -21,7 +25,13 @@ public abstract class AbstractModuleResourceService implements ModuleResourceSer
     }
 
     @Override
-    public Map<String, Object> list(String route, int page, int size, String search, String status) {
+    public Map<String, Object> list(
+        String route,
+        int page,
+        int size,
+        String search,
+        String status
+    ) {
         return resources.list(route, page, size, search, status);
     }
 

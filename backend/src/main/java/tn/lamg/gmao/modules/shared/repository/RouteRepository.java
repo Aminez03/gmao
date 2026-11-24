@@ -4,6 +4,7 @@ import java.util.Set;
 
 /** Shared implementation for repositories that group resources of one module. */
 public abstract class RouteRepository implements ModuleRepository {
+
     private final Set<String> routes;
 
     protected RouteRepository(String... routes) {

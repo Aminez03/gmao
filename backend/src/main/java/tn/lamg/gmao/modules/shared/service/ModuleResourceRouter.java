@@ -7,6 +7,7 @@ import tn.lamg.gmao.common.ApiException;
 /** Routes a generic REST resource to the service that owns its business module. */
 @Service
 public class ModuleResourceRouter {
+
     private final List<ModuleResourceService> modules;
 
     public ModuleResourceRouter(List<ModuleResourceService> modules) {
@@ -21,7 +22,13 @@ public class ModuleResourceRouter {
             .orElseThrow(() -> new ApiException(404, "RESOURCE_NOT_FOUND", "Ressource inconnue"));
     }
 
-    public Map<String, Object> list(String route, int page, int size, String search, String status) {
+    public Map<String, Object> list(
+        String route,
+        int page,
+        int size,
+        String search,
+        String status
+    ) {
         return module(route).list(route, page, size, search, status);
     }
 

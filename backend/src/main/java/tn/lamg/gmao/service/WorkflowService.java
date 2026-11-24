@@ -612,7 +612,11 @@ public class WorkflowService {
     }
 
     private void quality(GoodsReceipt r, Map<String, Object> b) {
-        require(r.status.equals("QUARANTAINE"), "ALREADY_INSPECTED", "RÃ©ception dÃ©jÃ  contrÃ´lÃ©e.");
+        require(
+            r.status.equals("QUARANTAINE"),
+            "ALREADY_INSPECTED",
+            "RÃ©ception dÃ©jÃ  contrÃ´lÃ©e."
+        );
         var accepted = number(b, "accepted");
         var rejected = number(b, "rejected");
         require(

@@ -5,6 +5,7 @@ import tn.lamg.gmao.modules.shared.repository.RouteRepository;
 
 @Repository
 public class PatrimoineRepository extends RouteRepository {
+
     public PatrimoineRepository() {
         super("locations", "assets", "attachments");
     }

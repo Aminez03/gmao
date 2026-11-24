@@ -171,7 +171,11 @@ public class AccessPolicy {
                 current.get().id.equals(w.technicianId) ||
                 ("SOUS_TRAITANT".equals(current.get().role) && canRead(w))
             )
-        ) throw new ApiException(403, "NOT_ASSIGNED", "Intervention non affectÃ©e Ã  votre compte.");
+        ) throw new ApiException(
+            403,
+            "NOT_ASSIGNED",
+            "Intervention non affectÃ©e Ã  votre compte."
+        );
     }
 
     public boolean ownShift(UUID shift, UUID user) {

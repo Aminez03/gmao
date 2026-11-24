@@ -5,6 +5,7 @@ import tn.lamg.gmao.modules.shared.repository.RouteRepository;
 
 @Repository
 public class PrestatairesRepository extends RouteRepository {
+
     public PrestatairesRepository() {
         super("subcontractors", "contracts", "external-interventions", "material-requests");
     }

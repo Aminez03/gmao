@@ -21,7 +21,10 @@ public class ResourceRegistry {
         add("handovers", tn.lamg.gmao.modules.equipes.model.Handover.class);
         add("checklists", tn.lamg.gmao.modules.maintenance.model.Checklist.class);
         add("preventive-plans", tn.lamg.gmao.modules.maintenance.model.PreventivePlan.class);
-        add("preventive-occurrences", tn.lamg.gmao.modules.maintenance.model.PreventiveOccurrence.class);
+        add(
+            "preventive-occurrences",
+            tn.lamg.gmao.modules.maintenance.model.PreventiveOccurrence.class
+        );
         add("work-orders", tn.lamg.gmao.modules.maintenance.model.WorkOrder.class);
         add("failure-reports", tn.lamg.gmao.modules.maintenance.model.FailureReport.class);
         add("time-entries", tn.lamg.gmao.modules.maintenance.model.TimeEntry.class);
@@ -36,7 +39,10 @@ public class ResourceRegistry {
         add("goods-receipts", tn.lamg.gmao.modules.achats.model.GoodsReceipt.class);
         add("subcontractors", tn.lamg.gmao.modules.prestataires.model.Contractor.class);
         add("contracts", tn.lamg.gmao.modules.prestataires.model.Contract.class);
-        add("external-interventions", tn.lamg.gmao.modules.prestataires.model.ExternalIntervention.class);
+        add(
+            "external-interventions",
+            tn.lamg.gmao.modules.prestataires.model.ExternalIntervention.class
+        );
         add("material-requests", tn.lamg.gmao.modules.prestataires.model.MaterialRequest.class);
         add("notifications", tn.lamg.gmao.modules.pilotage.model.Notification.class);
         add("audit-events", tn.lamg.gmao.modules.pilotage.model.AuditEvent.class);

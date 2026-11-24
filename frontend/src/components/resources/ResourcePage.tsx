@@ -104,14 +104,9 @@ export default function ResourcePage({ resource, statusOptions }: ResourcePagePr
     .filter(
       (f) =>
         !['j', 'x'].includes(f.type) &&
-        ![
-          'archived',
-          'createdBy',
-                  'contentType',
-          'size',
-          'checklistSnapshot',
-          'answers',
-        ].includes(f.name),
+        !['archived', 'createdBy', 'contentType', 'size', 'checklistSnapshot', 'answers'].includes(
+          f.name,
+        ),
     )
     .slice(0, 6);
 

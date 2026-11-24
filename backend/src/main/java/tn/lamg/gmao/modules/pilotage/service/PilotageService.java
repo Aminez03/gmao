@@ -7,6 +7,7 @@ import tn.lamg.gmao.service.ResourceService;
 
 @Service
 public class PilotageService extends AbstractModuleResourceService {
+
     public PilotageService(PilotageRepository repository, ResourceService resources) {
         super(repository, resources);
     }
