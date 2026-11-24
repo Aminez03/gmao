@@ -31,7 +31,7 @@ public class AuthController {
     final CurrentUser current;
     final JdbcTemplate jdbc;
     final JavaMailSender mail;
-    final Set<String> origins;
+    final String origin;
     final boolean secure;
     final boolean mailEnabled;
     final TurnstileService turnstile;
@@ -46,7 +46,7 @@ public class AuthController {
         JdbcTemplate j,
         JavaMailSender m,
         TurnstileService turnstile,
-        @Value("${gmao.public-origins:${gmao.public-origin}}") String allowedOrigins,
+        @Value("${gmao.public-origin}") String o,
         @Value("${gmao.secure-cookie:true}") boolean secure,
         @Value("${gmao.mail-enabled:false}") boolean enabled
     ) {
@@ -58,10 +58,7 @@ public class AuthController {
         jdbc = j;
         mail = m;
         this.turnstile = turnstile;
-        origins = Arrays.stream(allowedOrigins.split(","))
-            .map(String::trim)
-            .filter(value -> !value.isEmpty())
-            .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        origin = o;
         this.secure = secure;
         mailEnabled = enabled;
     }
@@ -224,7 +221,7 @@ public class AuthController {
     }
 
     void checkOrigin(HttpServletRequest req) {
-        if (!origins.contains(req.getHeader("Origin"))) throw new ApiException(
+        if (!origin.equals(req.getHeader("Origin"))) throw new ApiException(
             403,
             "ORIGIN_DENIED",
             "Origine de la requÃªte non autorisÃ©e."

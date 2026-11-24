@@ -43,7 +43,6 @@ management:
 gmao:
   jwt-secret: ${JWT_SECRET}
   public-origin: ${PUBLIC_ORIGIN:http://localhost:3000}
-  public-origins: ${PUBLIC_ORIGINS:${PUBLIC_ORIGIN:http://localhost:3000}}
   turnstile-secret: ${TURNSTILE_SECRET_KEY:}
   secure-cookie: ${SECURE_COOKIE:true}
   bootstrap-email: ${BOOTSTRAP_EMAIL:}
