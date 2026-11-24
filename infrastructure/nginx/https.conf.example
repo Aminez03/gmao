@@ -1,0 +1,21 @@
+# Reverse proxy externe devant le service frontend (port 3000).
+# Remplacer le domaine et fournir les certificats via un gestionnaire ACME.
+server {
+    listen 80;
+    server_name gmao.example.org;
+    return 301 https://$host$request_uri;
+}
+server {
+    listen 443 ssl;
+    server_name gmao.example.org;
+    ssl_certificate /etc/letsencrypt/live/gmao.example.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/gmao.example.org/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    client_max_body_size 26m;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}

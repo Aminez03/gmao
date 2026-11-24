@@ -1,0 +1,12 @@
+.env
+**/target/
+**/node_modules/
+**/dist/
+**/*.tsbuildinfo
+.m2/
+.cache/
+backups/
+*.log
+*.log.err
+
+**/__pycache__/

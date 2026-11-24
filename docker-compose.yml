@@ -1,0 +1,77 @@
+name: polyclinique-gmao
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gmao}
+      POSTGRES_USER: ${POSTGRES_USER:-gmao}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définissez POSTGRES_PASSWORD dans .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    logging: &logging
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+  backend:
+    build: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-gmao}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-gmao}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Définissez JWT_SECRET}
+      BOOTSTRAP_EMAIL: ${BOOTSTRAP_EMAIL:?Définissez BOOTSTRAP_EMAIL}
+      BOOTSTRAP_PASSWORD: ${BOOTSTRAP_PASSWORD:?Définissez BOOTSTRAP_PASSWORD}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:3000}
+      SECURE_COOKIE: ${SECURE_COOKIE:-false}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -O /dev/null http://127.0.0.1:8080/actuator/health/readiness']
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 10
+    restart: unless-stopped
+    logging: *logging
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
+    ports: ['127.0.0.1:${APP_PORT:-3000}:80']
+    depends_on:
+      backend: {condition: service_healthy}
+    restart: unless-stopped
+    logging: *logging
+  
+  
+  backup:
+    image: postgres:16-alpine
+    profiles: [backup]
+    environment:
+      PGHOST: postgres
+      PGDATABASE: ${POSTGRES_DB:-gmao}
+      PGUSER: ${POSTGRES_USER:-gmao}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./backups:/backups
+      - ./infrastructure/backup/postgres.sh:/backup.sh:ro
+    entrypoint: [sh, /backup.sh]
+    depends_on:
+      postgres: {condition: service_healthy}
+volumes:
+  pgdata:
+  prometheusdata:
+  grafanadata:

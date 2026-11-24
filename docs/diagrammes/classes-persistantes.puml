@@ -1,0 +1,486 @@
+@startuml GMAO_Classes_Persistantes
+title GMAO Polyclinique - Classes persistantes
+left to right direction
+hide methods
+hide circle
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam shadowing false
+
+abstract class BaseEntity <<MappedSuperclass>> {
+  +id : UUID <<PK>>
+  +version : long <<Version>>
+  +createdAt : Instant
+  +updatedAt : Instant
+  +createdBy : UUID <<FK>>
+  +archived : boolean
+}
+
+package "Comptes et persistance technique" {
+  class "AuthSession\n(auth_session)" as AuthSession <<Entity>> {
+    +id : UUID <<PK>>
+    +userId : UUID <<FK>>
+    +refreshHash : String
+    +expiresAt : Instant
+    +revoked : boolean
+  }
+  class "UserAccount\n(app_user)" as UserAccount <<Entity>> {
+    +id : UUID <<PK>>
+    +email : String
+    +name : String
+    +passwordHash : String
+    +role : String
+    +active : boolean
+    +contractorId : UUID <<FK>>
+    +version : long <<Version>>
+    +createdAt : Instant
+  }
+  class "ResetToken\n(reset_token)" as ResetToken <<SQL>> {
+    +id : UUID <<PK>>
+    +userId : UUID <<FK>>
+    +hash : String
+    +expiresAt : Instant
+    +used : boolean
+  }
+  class "CommandReceipt\n(command_receipt)" as CommandReceipt <<SQL>> {
+    +id : UUID <<PK>>
+    +userId : UUID <<FK>>
+    +operationKey : UUID
+    +requestHash : String
+    +response : JsonNode <<JSONB>>
+    +createdAt : Instant
+  }
+}
+
+package "Patrimoine" {
+  class "Asset\n(asset)" as Asset <<Entity>> {
+    +code : String
+    +name : String
+    +category : String
+    +locationId : UUID <<FK>>
+    +parentId : UUID <<FK>>
+    +brand : String
+    +model : String
+    +serialNumber : String
+    +commissionedOn : LocalDate
+    +supplierId : UUID <<FK>>
+    +warrantyUntil : LocalDate
+    +criticality : String
+    +status : String
+    +qrToken : UUID
+  }
+  class "Attachment\n(attachment)" as Attachment <<Entity>> {
+    +targetType : String
+    +targetId : UUID
+    +name : String
+    +objectKey : String
+    +contentType : String
+    +size : Long
+  }
+  class "Location\n(location)" as Location <<Entity>> {
+    +code : String
+    +name : String
+    +type : String
+    +parentId : UUID <<FK>>
+  }
+}
+
+package "Equipes et postes" {
+  class "Absence\n(absence)" as Absence <<Entity>> {
+    +userId : UUID <<FK>>
+    +startsAt : Instant
+    +endsAt : Instant
+    +reason : String
+    +status : String
+  }
+  class "Handover\n(handover)" as Handover <<Entity>> {
+    +fromShiftId : UUID <<FK>>
+    +toShiftId : UUID <<FK>>
+    +priority : String
+    +comment : String
+    +workOrderIds : JsonNode <<JSONB>>
+    +assetIds : JsonNode <<JSONB>>
+    +acknowledgedAt : Instant
+    +acknowledgedBy : UUID <<FK>>
+  }
+  class "Shift\n(shift)" as Shift <<Entity>> {
+    +teamId : UUID <<FK>>
+    +name : String
+    +startsAt : Instant
+    +endsAt : Instant
+    +status : String
+  }
+  class "ShiftAssignment\n(shift_assignment)" as ShiftAssignment <<Entity>> {
+    +shiftId : UUID <<FK>>
+    +userId : UUID <<FK>>
+    +replacementForId : UUID <<FK>>
+  }
+  class "Skill\n(skill)" as Skill <<Entity>> {
+    +code : String
+    +name : String
+  }
+  class "Team\n(team)" as Team <<Entity>> {
+    +code : String
+    +name : String
+  }
+  class "TeamMember\n(team_member)" as TeamMember <<Entity>> {
+    +teamId : UUID <<FK>>
+    +userId : UUID <<FK>>
+    +validFrom : LocalDate
+    +validUntil : LocalDate
+  }
+  class "UserSkill\n(user_skill)" as UserSkill <<Entity>> {
+    +userId : UUID <<FK>>
+    +skillId : UUID <<FK>>
+    +validUntil : LocalDate
+  }
+}
+
+package "Maintenance" {
+  class "Anomaly\n(anomaly)" as Anomaly <<Entity>> {
+    +workOrderId : UUID <<FK>>
+    +stepKey : String
+    +description : String
+    +severity : String
+    +resolvedAt : Instant
+    +resolvedBy : UUID <<FK>>
+    +disposition : String
+    +correctiveReportId : UUID <<FK>>
+  }
+  class "Checklist\n(checklist)" as Checklist <<Entity>> {
+    +name : String
+    +assetId : UUID <<FK>>
+    +steps : JsonNode <<JSONB>>
+    +revision : Integer
+    +published : Boolean
+  }
+  class "Downtime\n(downtime)" as Downtime <<Entity>> {
+    +assetId : UUID <<FK>>
+    +workOrderId : UUID <<FK>>
+    +startsAt : Instant
+    +endsAt : Instant
+    +reason : String
+  }
+  class "FailureReport\n(failure_report)" as FailureReport <<Entity>> {
+    +assetId : UUID <<FK>>
+    +description : String
+    +priority : String
+    +status : String
+    +workOrderId : UUID <<FK>>
+  }
+  class "PreventiveOccurrence\n(preventive_occurrence)" as PreventiveOccurrence <<Entity>> {
+    +planId : UUID <<FK>>
+    +dueAt : Instant
+    +status : String
+  }
+  class "PreventivePlan\n(preventive_plan)" as PreventivePlan <<Entity>> {
+    +name : String
+    +assetId : UUID <<FK>>
+    +checklistId : UUID <<FK>>
+    +teamId : UUID <<FK>>
+    +frequency : String
+    +intervalCount : Integer
+    +mode : String
+    +anchorLocal : String
+    +zoneId : String
+    +nextDueAt : Instant
+    +active : Boolean
+    +requiredSkillId : UUID <<FK>>
+  }
+  class "TimeEntry\n(time_entry)" as TimeEntry <<Entity>> {
+    +workOrderId : UUID <<FK>>
+    +userId : UUID <<FK>>
+    +startsAt : Instant
+    +endsAt : Instant
+    +minutes : Integer
+  }
+  class "WorkOrder\n(work_order)" as WorkOrder <<Entity>> {
+    +number : String
+    +title : String
+    +description : String
+    +assetId : UUID <<FK>>
+    +planId : UUID <<FK>>
+    +occurrenceId : UUID <<FK>>
+    +checklistId : UUID <<FK>>
+    +checklistSnapshot : JsonNode <<JSONB>>
+    +answers : JsonNode <<JSONB>>
+    +type : String
+    +status : String
+    +priority : String
+    +teamId : UUID <<FK>>
+    +technicianId : UUID <<FK>>
+    +contractorId : UUID <<FK>>
+    +requiredSkillId : UUID <<FK>>
+    +dueAt : Instant
+    +startedAt : Instant
+    +completedAt : Instant
+    +validatedAt : Instant
+    +validatedBy : UUID <<FK>>
+    +waitReason : String
+    +waitNote : String
+    +diagnostic : String
+    +cause : String
+    +solution : String
+    +report : String
+    +safetyConfirmed : Boolean
+    +actualMinutes : Integer
+  }
+}
+
+package "Achats et stock" {
+  class "GoodsReceipt\n(goods_receipt)" as GoodsReceipt <<Entity>> {
+    +orderId : UUID <<FK>>
+    +deliveryReference : String
+    +quantity : BigDecimal
+    +accepted : BigDecimal
+    +rejected : BigDecimal
+    +status : String
+    +qualityNote : String
+  }
+  class "InventoryItem\n(inventory_item)" as InventoryItem <<Entity>> {
+    +code : String
+    +name : String
+    +unit : String
+    +stock : BigDecimal
+    +reserved : BigDecimal
+    +minimum : BigDecimal
+    +unitCost : BigDecimal
+  }
+  class "PurchaseOrder\n(purchase_order)" as PurchaseOrder <<Entity>> {
+    +requestId : UUID <<FK>>
+    +supplierId : UUID <<FK>>
+    +quantity : BigDecimal
+    +unitPrice : BigDecimal
+    +status : String
+    +expectedOn : LocalDate
+  }
+  class "PurchaseRequest\n(purchase_request)" as PurchaseRequest <<Entity>> {
+    +number : String
+    +workOrderId : UUID <<FK>>
+    +itemId : UUID <<FK>>
+    +quantity : BigDecimal
+    +justification : String
+    +status : String
+    +approvedBy : UUID <<FK>>
+    +approvedAt : Instant
+    +decisionReason : String
+  }
+  class "Reservation\n(reservation)" as Reservation <<Entity>> {
+    +workOrderId : UUID <<FK>>
+    +itemId : UUID <<FK>>
+    +quantity : BigDecimal
+    +allocated : BigDecimal
+    +consumed : BigDecimal
+    +status : String
+  }
+  class "StockMovement\n(stock_movement)" as StockMovement <<Entity>> {
+    +itemId : UUID <<FK>>
+    +workOrderId : UUID <<FK>>
+    +inspectionId : UUID <<FK>>
+    +type : String
+    +quantity : BigDecimal
+    +unitCost : BigDecimal
+    +reason : String
+  }
+  class "Supplier\n(supplier)" as Supplier <<Entity>> {
+    +code : String
+    +name : String
+    +email : String
+    +phone : String
+    +address : String
+  }
+}
+
+package "Prestataires" {
+  class "Contract\n(contract)" as Contract <<Entity>> {
+    +contractorId : UUID <<FK>>
+    +reference : String
+    +startsOn : LocalDate
+    +endsOn : LocalDate
+    +scope : String
+    +amount : BigDecimal
+  }
+  class "Contractor\n(contractor)" as Contractor <<Entity>> {
+    +code : String
+    +name : String
+    +email : String
+    +phone : String
+    +skills : String
+  }
+  class "ExternalIntervention\n(external_intervention)" as ExternalIntervention <<Entity>> {
+    +contractId : UUID <<FK>>
+    +workOrderId : UUID <<FK>>
+    +contractorId : UUID <<FK>>
+    +plannedAt : Instant
+    +visitedAt : Instant
+    +report : String
+    +status : String
+    +cost : BigDecimal
+    +approvedBy : UUID <<FK>>
+  }
+  class "MaterialRequest\n(material_request)" as MaterialRequest <<Entity>> {
+    +interventionId : UUID <<FK>>
+    +designation : String
+    +quantity : BigDecimal
+    +justification : String
+    +status : String
+  }
+}
+
+package "Pilotage" {
+  class "AuditEvent\n(audit_event)" as AuditEvent <<Entity>> {
+    +actorId : UUID <<FK>>
+    +action : String
+    +resourceType : String
+    +resourceId : UUID
+    +details : String
+  }
+  class "Notification\n(notification)" as Notification <<Entity>> {
+    +recipientId : UUID <<FK>>
+    +title : String
+    +resourceType : String
+    +resourceId : UUID
+    +readAt : Instant
+  }
+}
+
+' Heritage Java : les attributs de BaseEntity sont herites, pas dupliques.
+BaseEntity <|-- GoodsReceipt
+BaseEntity <|-- InventoryItem
+BaseEntity <|-- PurchaseOrder
+BaseEntity <|-- PurchaseRequest
+BaseEntity <|-- Reservation
+BaseEntity <|-- StockMovement
+BaseEntity <|-- Supplier
+BaseEntity <|-- Absence
+BaseEntity <|-- Handover
+BaseEntity <|-- Shift
+BaseEntity <|-- ShiftAssignment
+BaseEntity <|-- Skill
+BaseEntity <|-- Team
+BaseEntity <|-- TeamMember
+BaseEntity <|-- UserSkill
+BaseEntity <|-- Anomaly
+BaseEntity <|-- Checklist
+BaseEntity <|-- Downtime
+BaseEntity <|-- FailureReport
+BaseEntity <|-- PreventiveOccurrence
+BaseEntity <|-- PreventivePlan
+BaseEntity <|-- TimeEntry
+BaseEntity <|-- WorkOrder
+BaseEntity <|-- Asset
+BaseEntity <|-- Attachment
+BaseEntity <|-- Location
+BaseEntity <|-- AuditEvent
+BaseEntity <|-- Notification
+BaseEntity <|-- Contract
+BaseEntity <|-- Contractor
+BaseEntity <|-- ExternalIntervention
+BaseEntity <|-- MaterialRequest
+
+' Associations stockees en base : UUID et contraintes FOREIGN KEY.
+UserAccount "0..1" <-- "0..*" BaseEntity : createdBy
+
+UserAccount "1" <-- "0..*" AuthSession : userId
+UserAccount "1" <-- "0..*" ResetToken : userId
+UserAccount "1" <-- "0..*" CommandReceipt : userId
+Location "0..1" <-- "0..*" Location : parentId
+Location "1" <-- "0..*" Asset : locationId
+Asset "0..1" <-- "0..*" Asset : parentId
+Supplier "0..1" <-- "0..*" Asset : supplierId
+UserAccount "1" <-- "0..*" UserSkill : userId
+Skill "1" <-- "0..*" UserSkill : skillId
+Team "1" <-- "0..*" TeamMember : teamId
+UserAccount "1" <-- "0..*" TeamMember : userId
+Team "1" <-- "0..*" Shift : teamId
+Shift "1" <-- "0..*" ShiftAssignment : shiftId
+UserAccount "1" <-- "0..*" ShiftAssignment : userId
+ShiftAssignment "0..1" <-- "0..*" ShiftAssignment : replacementForId
+UserAccount "1" <-- "0..*" Absence : userId
+Shift "1" <-- "0..*" Handover : fromShiftId
+Shift "1" <-- "0..*" Handover : toShiftId
+UserAccount "0..1" <-- "0..*" Handover : acknowledgedBy
+Asset "0..1" <-- "0..*" Checklist : assetId
+Asset "1" <-- "0..*" PreventivePlan : assetId
+Checklist "1" <-- "0..*" PreventivePlan : checklistId
+Team "0..1" <-- "0..*" PreventivePlan : teamId
+Skill "0..1" <-- "0..*" PreventivePlan : requiredSkillId
+PreventivePlan "1" <-- "0..*" PreventiveOccurrence : planId
+Asset "1" <-- "0..*" WorkOrder : assetId
+PreventivePlan "0..1" <-- "0..*" WorkOrder : planId
+PreventiveOccurrence "0..1" <-- "0..1" WorkOrder : occurrenceId
+Checklist "0..1" <-- "0..*" WorkOrder : checklistId
+Team "0..1" <-- "0..*" WorkOrder : teamId
+UserAccount "0..1" <-- "0..*" WorkOrder : technicianId
+Contractor "0..1" <-- "0..*" WorkOrder : contractorId
+Skill "0..1" <-- "0..*" WorkOrder : requiredSkillId
+UserAccount "0..1" <-- "0..*" WorkOrder : validatedBy
+Asset "1" <-- "0..*" FailureReport : assetId
+WorkOrder "0..1" <-- "0..*" FailureReport : workOrderId
+WorkOrder "1" <-- "0..*" TimeEntry : workOrderId
+UserAccount "1" <-- "0..*" TimeEntry : userId
+WorkOrder "1" <-- "0..*" Anomaly : workOrderId
+UserAccount "0..1" <-- "0..*" Anomaly : resolvedBy
+FailureReport "0..1" <-- "0..*" Anomaly : correctiveReportId
+Asset "1" <-- "0..*" Downtime : assetId
+WorkOrder "0..1" <-- "0..*" Downtime : workOrderId
+WorkOrder "1" <-- "0..*" Reservation : workOrderId
+InventoryItem "1" <-- "0..*" Reservation : itemId
+InventoryItem "1" <-- "0..*" StockMovement : itemId
+WorkOrder "0..1" <-- "0..*" StockMovement : workOrderId
+GoodsReceipt "0..1" <-- "0..1" StockMovement : inspectionId
+WorkOrder "0..1" <-- "0..*" PurchaseRequest : workOrderId
+InventoryItem "1" <-- "0..*" PurchaseRequest : itemId
+UserAccount "0..1" <-- "0..*" PurchaseRequest : approvedBy
+PurchaseRequest "1" <-- "0..*" PurchaseOrder : requestId
+Supplier "1" <-- "0..*" PurchaseOrder : supplierId
+PurchaseOrder "1" <-- "0..*" GoodsReceipt : orderId
+Contractor "1" <-- "0..*" Contract : contractorId
+Contract "1" <-- "0..*" ExternalIntervention : contractId
+WorkOrder "1" <-- "0..*" ExternalIntervention : workOrderId
+Contractor "1" <-- "0..*" ExternalIntervention : contractorId
+UserAccount "0..1" <-- "0..*" ExternalIntervention : approvedBy
+ExternalIntervention "1" <-- "0..*" MaterialRequest : interventionId
+UserAccount "1" <-- "0..*" Notification : recipientId
+UserAccount "0..1" <-- "0..*" AuditEvent : actorId
+Contractor "0..1" <-- "0..*" UserAccount : contractorId
+
+note bottom of BaseEntity
+  MappedSuperclass : aucune table BaseEntity.
+  Les classes Entity heritent de ses attributs uniquement
+  lorsque la fleche de generalisation est presente.
+  createdBy reference app_user dans chaque table heritiere.
+end note
+
+note bottom of Attachment
+  targetType + targetId : reference polymorphe applicative.
+  Pas de cle etrangere SQL vers une table cible unique.
+  Seules les metadonnees sont en PostgreSQL ; objet dans MinIO.
+end note
+
+note bottom of Handover
+  workOrderIds et assetIds sont des tableaux JSONB.
+  Ils ne constituent pas des associations JPA ni des FK SQL.
+end note
+
+note bottom of WorkOrder
+  checklistSnapshot et answers sont des documents JSONB.
+  occurrenceId est unique : une echeance a au plus un OT.
+  Au plus un OT ouvert par plan (index unique partiel).
+end note
+
+note bottom of Notification
+  resourceType + resourceId : reference applicative sans FK.
+  Meme principe pour AuditEvent.
+end note
+
+legend bottom left
+  Source : entites Java et migrations Flyway V1 a V4.
+  Entity : classe JPA ; SQL : table sans classe JPA dediee.
+  PK : cle primaire ; FK : cle etrangere ; JSONB : document JSON.
+  Cardinalites selon NOT NULL et index uniques du schema.
+  Les associations sont stockees par UUID, sans @ManyToOne.
+  Les enumerations metier sont actuellement des champs String.
+endlegend
+@enduml

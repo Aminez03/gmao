@@ -1,0 +1,1303 @@
+[
+  {
+    "class": "Location",
+    "route": "locations",
+    "label": "Localisations",
+    "group": "patrimoine",
+    "fields": [
+      {
+        "name": "code",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "type",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "parentId",
+        "type": "u",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "Asset",
+    "route": "assets",
+    "label": "Équipements",
+    "group": "patrimoine",
+    "fields": [
+      {
+        "name": "code",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "category",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "locationId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "parentId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "brand",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "model",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "serialNumber",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "commissionedOn",
+        "type": "d",
+        "required": false
+      },
+      {
+        "name": "supplierId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "warrantyUntil",
+        "type": "d",
+        "required": false
+      },
+      {
+        "name": "criticality",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "qrToken",
+        "type": "u",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "Team",
+    "route": "teams",
+    "label": "Équipes",
+    "group": "equipes",
+    "fields": [
+      {
+        "name": "code",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "Skill",
+    "route": "skills",
+    "label": "Compétences",
+    "group": "equipes",
+    "fields": [
+      {
+        "name": "code",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "UserSkill",
+    "route": "user-skills",
+    "label": "Habilitations",
+    "group": "equipes",
+    "fields": [
+      {
+        "name": "userId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "skillId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "validUntil",
+        "type": "d",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "TeamMember",
+    "route": "team-members",
+    "label": "Membres des équipes",
+    "group": "equipes",
+    "fields": [
+      {
+        "name": "teamId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "userId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "validFrom",
+        "type": "d",
+        "required": true
+      },
+      {
+        "name": "validUntil",
+        "type": "d",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "Shift",
+    "route": "shifts",
+    "label": "Postes 3 × 8",
+    "group": "equipes",
+    "fields": [
+      {
+        "name": "teamId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "startsAt",
+        "type": "t",
+        "required": true
+      },
+      {
+        "name": "endsAt",
+        "type": "t",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "ShiftAssignment",
+    "route": "shift-assignments",
+    "label": "Affectations de poste",
+    "group": "equipes",
+    "fields": [
+      {
+        "name": "shiftId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "userId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "replacementForId",
+        "type": "u",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "Absence",
+    "route": "absences",
+    "label": "Absences",
+    "group": "equipes",
+    "fields": [
+      {
+        "name": "userId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "startsAt",
+        "type": "t",
+        "required": true
+      },
+      {
+        "name": "endsAt",
+        "type": "t",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "Handover",
+    "route": "handovers",
+    "label": "Passations de consignes",
+    "group": "equipes",
+    "fields": [
+      {
+        "name": "fromShiftId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "toShiftId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "priority",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "comment",
+        "type": "x",
+        "required": true
+      },
+      {
+        "name": "workOrderIds",
+        "type": "j",
+        "required": false
+      },
+      {
+        "name": "assetIds",
+        "type": "j",
+        "required": false
+      },
+      {
+        "name": "acknowledgedAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "acknowledgedBy",
+        "type": "u",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "Checklist",
+    "route": "checklists",
+    "label": "Gammes et checklists",
+    "group": "maintenance",
+    "fields": [
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "assetId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "steps",
+        "type": "j",
+        "required": true
+      },
+      {
+        "name": "revision",
+        "type": "i",
+        "required": true
+      },
+      {
+        "name": "published",
+        "type": "b",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "PreventivePlan",
+    "route": "preventive-plans",
+    "label": "Plans préventifs",
+    "group": "maintenance",
+    "fields": [
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "assetId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "checklistId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "teamId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "frequency",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "intervalCount",
+        "type": "i",
+        "required": true
+      },
+      {
+        "name": "mode",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "anchorLocal",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "zoneId",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "nextDueAt",
+        "type": "t",
+        "required": true
+      },
+      {
+        "name": "active",
+        "type": "b",
+        "required": false
+      },
+      {
+        "name": "requiredSkillId",
+        "type": "u",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "PreventiveOccurrence",
+    "route": "preventive-occurrences",
+    "label": "Échéances préventives",
+    "group": "maintenance",
+    "fields": [
+      {
+        "name": "planId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "dueAt",
+        "type": "t",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "WorkOrder",
+    "route": "work-orders",
+    "label": "Interventions",
+    "group": "maintenance",
+    "fields": [
+      {
+        "name": "number",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "title",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "description",
+        "type": "x",
+        "required": true
+      },
+      {
+        "name": "assetId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "planId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "occurrenceId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "checklistId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "checklistSnapshot",
+        "type": "j",
+        "required": false
+      },
+      {
+        "name": "answers",
+        "type": "j",
+        "required": false
+      },
+      {
+        "name": "type",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "priority",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "teamId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "technicianId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "contractorId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "requiredSkillId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "dueAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "startedAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "completedAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "validatedAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "validatedBy",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "waitReason",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "waitNote",
+        "type": "x",
+        "required": false
+      },
+      {
+        "name": "diagnostic",
+        "type": "x",
+        "required": false
+      },
+      {
+        "name": "cause",
+        "type": "x",
+        "required": false
+      },
+      {
+        "name": "solution",
+        "type": "x",
+        "required": false
+      },
+      {
+        "name": "report",
+        "type": "x",
+        "required": false
+      },
+      {
+        "name": "safetyConfirmed",
+        "type": "b",
+        "required": false
+      },
+      {
+        "name": "actualMinutes",
+        "type": "i",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "FailureReport",
+    "route": "failure-reports",
+    "label": "Déclarations de panne",
+    "group": "maintenance",
+    "fields": [
+      {
+        "name": "assetId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "description",
+        "type": "x",
+        "required": true
+      },
+      {
+        "name": "priority",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "workOrderId",
+        "type": "u",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "TimeEntry",
+    "route": "time-entries",
+    "label": "Temps d’intervention",
+    "group": "maintenance",
+    "fields": [
+      {
+        "name": "workOrderId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "userId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "startsAt",
+        "type": "t",
+        "required": true
+      },
+      {
+        "name": "endsAt",
+        "type": "t",
+        "required": true
+      },
+      {
+        "name": "minutes",
+        "type": "i",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "Anomaly",
+    "route": "anomalies",
+    "label": "Anomalies",
+    "group": "maintenance",
+    "fields": [
+      {
+        "name": "workOrderId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "stepKey",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "description",
+        "type": "x",
+        "required": true
+      },
+      {
+        "name": "severity",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "resolvedAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "resolvedBy",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "disposition",
+        "type": "x",
+        "required": false
+      },
+      {
+        "name": "correctiveReportId",
+        "type": "u",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "Downtime",
+    "route": "downtimes",
+    "label": "Indisponibilités",
+    "group": "maintenance",
+    "fields": [
+      {
+        "name": "assetId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "workOrderId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "startsAt",
+        "type": "t",
+        "required": true
+      },
+      {
+        "name": "endsAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "reason",
+        "type": "x",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "Supplier",
+    "route": "suppliers",
+    "label": "Fournisseurs",
+    "group": "achats",
+    "fields": [
+      {
+        "name": "code",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "phone",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "address",
+        "type": "x",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "InventoryItem",
+    "route": "inventory/items",
+    "label": "Pièces et stocks",
+    "group": "achats",
+    "fields": [
+      {
+        "name": "code",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "unit",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "stock",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "reserved",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "minimum",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "unitCost",
+        "type": "n",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "Reservation",
+    "route": "inventory/reservations",
+    "label": "Besoins en pièces",
+    "group": "achats",
+    "fields": [
+      {
+        "name": "workOrderId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "itemId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "quantity",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "allocated",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "consumed",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "StockMovement",
+    "route": "inventory/movements",
+    "label": "Mouvements de stock",
+    "group": "achats",
+    "fields": [
+      {
+        "name": "itemId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "workOrderId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "inspectionId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "type",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "quantity",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "unitCost",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "x",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "PurchaseRequest",
+    "route": "purchase-requests",
+    "label": "Demandes d’achat",
+    "group": "achats",
+    "fields": [
+      {
+        "name": "number",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "workOrderId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "itemId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "quantity",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "justification",
+        "type": "x",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "approvedBy",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "approvedAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "decisionReason",
+        "type": "x",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "PurchaseOrder",
+    "route": "purchase-orders",
+    "label": "Commandes",
+    "group": "achats",
+    "fields": [
+      {
+        "name": "requestId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "supplierId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "quantity",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "unitPrice",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "expectedOn",
+        "type": "d",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "GoodsReceipt",
+    "route": "goods-receipts",
+    "label": "Réceptions et qualité",
+    "group": "achats",
+    "fields": [
+      {
+        "name": "orderId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "deliveryReference",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "quantity",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "accepted",
+        "type": "n",
+        "required": false
+      },
+      {
+        "name": "rejected",
+        "type": "n",
+        "required": false
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "qualityNote",
+        "type": "x",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "Contractor",
+    "route": "subcontractors",
+    "label": "Prestataires",
+    "group": "prestataires",
+    "fields": [
+      {
+        "name": "code",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "phone",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "skills",
+        "type": "x",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "Contract",
+    "route": "contracts",
+    "label": "Contrats",
+    "group": "prestataires",
+    "fields": [
+      {
+        "name": "contractorId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "reference",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "startsOn",
+        "type": "d",
+        "required": true
+      },
+      {
+        "name": "endsOn",
+        "type": "d",
+        "required": true
+      },
+      {
+        "name": "scope",
+        "type": "x",
+        "required": true
+      },
+      {
+        "name": "amount",
+        "type": "n",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "ExternalIntervention",
+    "route": "external-interventions",
+    "label": "Missions externes",
+    "group": "prestataires",
+    "fields": [
+      {
+        "name": "contractId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "workOrderId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "contractorId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "plannedAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "visitedAt",
+        "type": "t",
+        "required": false
+      },
+      {
+        "name": "report",
+        "type": "x",
+        "required": false
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "cost",
+        "type": "n",
+        "required": false
+      },
+      {
+        "name": "approvedBy",
+        "type": "u",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "MaterialRequest",
+    "route": "material-requests",
+    "label": "Matériel prestataire",
+    "group": "prestataires",
+    "fields": [
+      {
+        "name": "interventionId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "designation",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "quantity",
+        "type": "n",
+        "required": true
+      },
+      {
+        "name": "justification",
+        "type": "x",
+        "required": true
+      },
+      {
+        "name": "status",
+        "type": "s",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "Notification",
+    "route": "notifications",
+    "label": "Notifications",
+    "group": "pilotage",
+    "fields": [
+      {
+        "name": "recipientId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "title",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "resourceType",
+        "type": "s",
+        "required": false
+      },
+      {
+        "name": "resourceId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "readAt",
+        "type": "t",
+        "required": false
+      }
+    ]
+  },
+  {
+    "class": "AuditEvent",
+    "route": "audit-events",
+    "label": "Journal d’audit",
+    "group": "pilotage",
+    "fields": [
+      {
+        "name": "actorId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "action",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "resourceType",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "resourceId",
+        "type": "u",
+        "required": false
+      },
+      {
+        "name": "details",
+        "type": "x",
+        "required": true
+      }
+    ]
+  },
+  {
+    "class": "Attachment",
+    "route": "attachments",
+    "label": "Documents et photos",
+    "group": "patrimoine",
+    "fields": [
+      {
+        "name": "targetType",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "targetId",
+        "type": "u",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "contentType",
+        "type": "s",
+        "required": true
+      },
+      {
+        "name": "size",
+        "type": "l",
+        "required": true
+      }
+    ]
+  }
+]
