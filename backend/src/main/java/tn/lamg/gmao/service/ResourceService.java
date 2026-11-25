@@ -299,6 +299,10 @@ public class ResourceService {
             c.published = false;
         }
         if (e instanceof PreventivePlan p) {
+            long planNumber = ((Number) store.manager()
+                .createNativeQuery("select nextval('preventive_plan_number_seq')")
+                .getSingleResult()).longValue();
+            p.number = "PM-" + String.format(Locale.ROOT, "%03d", planNumber);
             ApiException.require(
                 p.anchorLocal != null && p.zoneId != null,
                 "PLAN_ANCHOR",
@@ -308,6 +312,12 @@ public class ResourceService {
             p.nextDueAt = LocalDateTime.parse(p.anchorLocal)
                 .atZone(ZoneId.of(p.zoneId))
                 .toInstant();
+        }
+        if (e instanceof Contract c) {
+            long contractNumber = ((Number) store.manager()
+                .createNativeQuery("select nextval('contract_number_seq')")
+                .getSingleResult()).longValue();
+            c.number = "CT-" + String.format(Locale.ROOT, "%03d", contractNumber);
         }
         if (e instanceof WorkOrder w) {
             w.number = "OT-" + w.id.toString().substring(0, 8).toUpperCase();

@@ -11,6 +11,11 @@ import tn.lamg.gmao.common.BaseEntity;
 @Table(name = "contract")
 public class Contract extends BaseEntity {
 
+    @NotBlank
+    @Size(max = 32)
+    @Column(name = "number", nullable = false, unique = true, updatable = false)
+    public String number;
+
     @NotNull
     @Column(name = "contractor_id")
     public UUID contractorId;

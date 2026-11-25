@@ -11,6 +11,11 @@ import tn.lamg.gmao.common.BaseEntity;
 public class PreventivePlan extends BaseEntity {
 
     @NotBlank
+    @Size(max = 32)
+    @Column(name = "number", nullable = false, unique = true, updatable = false)
+    public String number;
+
+    @NotBlank
     @Size(max = 255)
     @Column(name = "name")
     public String name;

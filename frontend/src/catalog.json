@@ -1084,6 +1084,11 @@
     "group": "prestataires",
     "fields": [
       {
+        "name": "number",
+        "type": "s",
+        "required": false
+      },
+      {
         "name": "contractorId",
         "type": "u",
         "required": true
