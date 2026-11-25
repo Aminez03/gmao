@@ -133,10 +133,13 @@ export default function Login() {
   return (
     <Box className="login-layout">
       <Box className="login-story">
-        <img src="/icon.svg" alt="" width="60" height="60" />
-        <Typography variant="overline" mt={5} color="#b9e5e8" fontWeight={800} letterSpacing=".12em">
-          LMX
-        </Typography>
+        <Box sx={{ width: { xs: 240, sm: 300 }, maxWidth: '100%', mb: 2, borderRadius: 2, overflow: 'hidden', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.12)' }}>
+          <img
+            src="/lmx-gmao-logo.jpeg"
+            alt="LMX GMAO"
+            style={{ display: 'block', width: '100%', height: 'auto' }}
+          />
+        </Box>
         <Typography
           variant="h3"
           sx={{ maxWidth: 550, mt: 2, fontSize: { xs: '2rem', lg: '3.2rem' } }}
