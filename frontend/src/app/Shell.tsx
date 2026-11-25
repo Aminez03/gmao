@@ -84,19 +84,25 @@ export default function Shell({
   });
   const unread = notifications?.items.filter((n: Entity) => !n.readAt).length || 0;
   function nav(to: string, label: string, icon?: React.ReactNode) {
+    const selected = location.pathname === to;
     return (
       <ListItemButton
+        className="app-nav-item"
         component={Link}
         to={to}
-        selected={location.pathname === to}
+        selected={selected}
         onClick={() => setOpen(false)}
         sx={{
-          mx: 1.5,
-          mb: 0.4,
-          borderRadius: 2,
+          mx: 1.25,
+          mb: 0.45,
+          minHeight: 42,
+          borderRadius: 2.5,
+          transition: 'background-color .18s ease, color .18s ease, transform .18s ease',
+          '&:hover': { bgcolor: 'action.hover', transform: 'translateX(2px)' },
           '&.Mui-selected': {
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
+            bgcolor: 'rgba(8, 127, 140, .11)',
+            color: 'primary.dark',
+            '&:hover': { bgcolor: 'rgba(8, 127, 140, .16)' },
             '& .MuiListItemIcon-root': { color: 'inherit' },
           },
         }}
@@ -105,16 +111,18 @@ export default function Shell({
         <ListItemText
           primary={label}
           slotProps={{
-            primary: { fontSize: 14, fontWeight: location.pathname === to ? 650 : 400 },
+          primary: { fontSize: 13.5, fontWeight: selected ? 700 : 500 },
           }}
         />
       </ListItemButton>
     );
   }
   const sidebar = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Stack direction="row" alignItems="center" gap={1.5} p={3}>
-        <img src="/icon.svg" width="38" height="38" alt="" />
+    <Box className="app-sidebar" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Stack className="app-brand" direction="row" alignItems="center" gap={1.5} p={2.5}>
+        <Box className="app-brand-icon">
+          <img src="/icon.svg" width="34" height="34" alt="" />
+        </Box>
         <Box>
           <Typography fontWeight={750}>POLYCLINIQUE</Typography>
           <Typography variant="caption" color="text.secondary">
@@ -137,7 +145,7 @@ export default function Shell({
                 <Typography
                   variant="overline"
                   color="text.secondary"
-                  sx={{ display: 'block', px: 3, mt: 2, mb: 1 }}
+                  sx={{ display: 'block', px: 2.75, mt: 2.25, mb: 0.75, fontWeight: 750, letterSpacing: '.1em' }}
                 >
                   {human(group)}
                 </Typography>
@@ -190,7 +198,7 @@ export default function Shell({
           display: { xs: 'none', lg: 'block' },
           width: 264,
           flexShrink: 0,
-          '& .MuiDrawer-paper': { width: 264, boxSizing: 'border-box' },
+          '& .MuiDrawer-paper': { width: 264, boxSizing: 'border-box', borderRightStyle: 'solid' },
         }}
       >
         {sidebar}
@@ -250,7 +258,7 @@ export default function Shell({
             </IconButton>
           </Toolbar>
         </AppBar>
-        <Box component="main" sx={{ p: { xs: 2, md: 4 }, maxWidth: 1800, mx: 'auto' }}>
+        <Box component="main" className="app-main" sx={{ p: { xs: 2, sm: 3, lg: 4 }, maxWidth: 1800, mx: 'auto' }}>
           {error && (
             <Alert severity="warning" onClose={() => setError('')} sx={{ mb: 2 }}>
               {error}

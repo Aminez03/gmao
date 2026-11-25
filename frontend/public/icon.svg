@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="44" fill="#087f8c"/><path d="M78 36h36v42h42v36h-42v42H78v-42H36V78h42z" fill="white"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="18" y1="12" x2="174" y2="184" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1199A0"/>
+      <stop offset="1" stop-color="#075567"/>
+    </linearGradient>
+    <linearGradient id="cross" x1="56" y1="42" x2="136" y2="146" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E8F7F5"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="46" fill="url(#bg)"/>
+  <path d="M78 38h36v40h40v36h-40v40H78v-40H38V78h40V38Z" fill="url(#cross)"/>
+  <circle cx="145" cy="145" r="31" fill="#123B4B" fill-opacity=".28"/>
+  <path d="M145 118l6 4 7-2 4 7 7 3v8l5 6-4 7 1 8-7 4-3 7-8 1-6 5-7-4-8 1-4-7-7-3-1-8-5-6 4-7-1-8 7-4 3-7 8-1 6-5 7 4 8-1 4 7Z" fill="#FFB454" stroke="#FFF5E8" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="145" cy="145" r="10" fill="#075567" stroke="#FFF5E8" stroke-width="4"/>
+</svg>
