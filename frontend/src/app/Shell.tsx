@@ -124,9 +124,8 @@ export default function Shell({
           <img src="/icon.svg" width="34" height="34" alt="" />
         </Box>
         <Box>
-          <Typography fontWeight={750}>POLYCLINIQUE</Typography>
-          <Typography variant="caption" color="text.secondary">
-            LMX · GMAO clinique
+          <Typography fontWeight={800} letterSpacing=".02em">
+            LMX
           </Typography>
         </Box>
       </Stack>

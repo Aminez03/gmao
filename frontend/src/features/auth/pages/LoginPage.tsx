@@ -134,8 +134,8 @@ export default function Login() {
     <Box className="login-layout">
       <Box className="login-story">
         <img src="/icon.svg" alt="" width="60" height="60" />
-        <Typography variant="overline" mt={5} color="#b9e5e8">
-          POLYCLINIQUE · LMX
+        <Typography variant="overline" mt={5} color="#b9e5e8" fontWeight={800} letterSpacing=".12em">
+          LMX
         </Typography>
         <Typography
           variant="h3"
