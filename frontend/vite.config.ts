@@ -8,9 +8,9 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'Polyclinique · Maintenance',
-        short_name: 'GMAO',
-        description: 'Maintenance technique de la polyclinique',
+        name: 'LMX · GMAO clinique',
+        short_name: 'LMX',
+        description: 'Gestion de maintenance technique de la polyclinique',
         lang: 'fr',
         theme_color: '#087f8c',
         background_color: '#f3f7f9',

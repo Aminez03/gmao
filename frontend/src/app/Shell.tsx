@@ -126,7 +126,7 @@ export default function Shell({
         <Box>
           <Typography fontWeight={750}>POLYCLINIQUE</Typography>
           <Typography variant="caption" color="text.secondary">
-            Maintenance & patrimoine
+            LMX · GMAO clinique
           </Typography>
         </Box>
       </Stack>

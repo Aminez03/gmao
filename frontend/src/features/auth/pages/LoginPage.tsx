@@ -135,7 +135,7 @@ export default function Login() {
       <Box className="login-story">
         <img src="/icon.svg" alt="" width="60" height="60" />
         <Typography variant="overline" mt={5} color="#b9e5e8">
-          POLYCLINIQUE · MAINTENANCE
+          POLYCLINIQUE · LMX
         </Typography>
         <Typography
           variant="h3"
