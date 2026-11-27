@@ -239,16 +239,35 @@ public class WorkflowService {
                     "INVALID_TRANSITION",
                     "Intervention déjà commencée."
                 );
-                w.technicianId = uuid(b, "technicianId");
+                var assigned = new ArrayList<UUID>();
+                Object rawTechnicians = b.get("technicianIds");
+                if (rawTechnicians != null) {
+                    var node = json.valueToTree(rawTechnicians);
+                    require(node.isArray(), "ASSIGNEE_INVALID", "La liste des techniciens est invalide.");
+                    for (var value : node) {
+                        try {
+                            var id = UUID.fromString(value.asText());
+                            if (!assigned.contains(id)) assigned.add(id);
+                        } catch (IllegalArgumentException ex) {
+                            throw new ApiException(422, "ASSIGNEE_INVALID", "Technicien invalide.");
+                        }
+                    }
+                }
+                if (assigned.isEmpty()) {
+                    var legacy = uuid(b, "technicianId");
+                    if (legacy != null) assigned.add(legacy);
+                }
+                w.technicianId = assigned.isEmpty() ? null : assigned.getFirst();
+                w.technicianIds = json.valueToTree(assigned);
                 w.teamId = uuid(b, "teamId");
                 w.contractorId = uuid(b, "contractorId");
                 require(
-                    w.technicianId != null || w.contractorId != null,
+                    !assigned.isEmpty() || w.contractorId != null,
                     "ASSIGNEE_REQUIRED",
                     "Choisissez un technicien ou prestataire."
                 );
-                if (w.technicianId != null) {
-                    var user = store.manager().find(UserAccount.class, w.technicianId);
+                for (var technicianId : assigned) {
+                    var user = store.manager().find(UserAccount.class, technicianId);
                     require(
                         user != null &&
                             user.active &&
@@ -258,8 +277,8 @@ public class WorkflowService {
                         "ASSIGNEE_INVALID",
                         "Technicien indisponible."
                     );
-                    checkSkill(w);
                 }
+                if (!assigned.isEmpty()) checkSkill(w);
                 w.status = "AFFECTEE";
                 events.notify(
                     w.technicianId,

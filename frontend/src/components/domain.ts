@@ -79,6 +79,7 @@ export const labels: Record<string, string> = {
   title: 'Intitulé',
   description: 'Description',
   technicianId: 'Technicien',
+  technicianIds: 'Techniciens affectés',
   contractorId: 'Prestataire',
   dueAt: 'Échéance',
   diagnostic: 'Diagnostic',
@@ -151,6 +152,7 @@ export const options: Record<string, string[]> = {
 export const userReferenceFields = new Set([
   'userId',
   'technicianId',
+  'technicianIds',
   'createdBy',
   'approvedBy',
   'validatedBy',

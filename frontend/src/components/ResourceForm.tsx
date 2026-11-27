@@ -155,14 +155,15 @@ function ReferenceField({
   return (
     <TextField
       select
+      SelectProps={field.name === 'technicianIds' ? { multiple: true } : undefined}
       label={labels[field.name] || field.name}
-      value={value || ''}
+      value={field.name === 'technicianIds' ? value || [] : value || ''}
       onChange={(e) => onChange(e.target.value)}
       fullWidth
       required={field.required}
       helperText={!data ? 'Chargement ou référence non accessible' : ''}
     >
-      <MenuItem value="">Aucun</MenuItem>
+      {field.name !== 'technicianIds' && <MenuItem value="">Aucun</MenuItem>}
       {(data?.items || [])
         .filter((item: Entity) => field.name !== 'checklistId' || item.published)
         .map((item: Entity) => (

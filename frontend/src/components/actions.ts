@@ -12,7 +12,7 @@ export function actions(route: string, e: Entity, role: string): Action[] {
   if (route === 'work-orders') {
     if (sup && ['NOUVELLE', 'AFFECTEE', 'EN_ATTENTE'].includes(e.status))
       add('assign', 'Affecter', [
-        f('technicianId', 'u', false),
+        f('technicianIds', 'u', false),
         f('teamId', 'u', false),
         f('contractorId', 'u', false),
       ]);

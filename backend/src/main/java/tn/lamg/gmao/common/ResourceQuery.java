@@ -77,7 +77,9 @@ public class ResourceQuery {
                     .distinct()
                     .toList();
                 String variable = name.equals("WorkOrder") ? "e" : "w";
-                String assigned = variable + ".technicianId=:uid";
+                String assigned =
+                    variable + ".technicianId=:uid or function('jsonb_exists', " +
+                    variable + ".technicianIds, cast(:uid as string)) = true";
                 params.put("uid", u.id);
                 if (!teams.isEmpty()) {
                     assigned += " or " + variable + ".teamId in :teams";

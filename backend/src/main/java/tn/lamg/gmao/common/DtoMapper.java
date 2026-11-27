@@ -14,6 +14,7 @@ public class DtoMapper {
     private static final Set<String> USER_FIELDS = Set.of(
         "userId",
         "technicianId",
+        "technicianIds",
         "createdBy",
         "approvedBy",
         "validatedBy",
@@ -39,6 +40,10 @@ public class DtoMapper {
         for (var row : rows) {
             for (var field : USER_FIELDS) {
                 if (row.get(field) instanceof UUID id) ids.add(id);
+                if ("technicianIds".equals(field) && row.get(field) instanceof com.fasterxml.jackson.databind.JsonNode node && node.isArray())
+                    for (var value : node) try {
+                        ids.add(UUID.fromString(value.asText()));
+                    } catch (IllegalArgumentException ignored) {}
             }
         }
         var names = new HashMap<UUID, String>();
@@ -55,6 +60,14 @@ public class DtoMapper {
             for (var field : USER_FIELDS) {
                 if (row.get(field) instanceof UUID id && names.containsKey(id)) {
                     labels.put(field, names.get(id));
+                }
+                if ("technicianIds".equals(field) && row.get(field) instanceof com.fasterxml.jackson.databind.JsonNode node && node.isArray()) {
+                    var technicians = new ArrayList<String>();
+                    for (var value : node) try {
+                        var name = names.get(UUID.fromString(value.asText()));
+                        if (name != null) technicians.add(name);
+                    } catch (IllegalArgumentException ignored) {}
+                    if (!technicians.isEmpty()) labels.put(field, String.join(", ", technicians));
                 }
             }
             row.put("userNames", labels);

@@ -1,6 +1,7 @@
 package tn.lamg.gmao.modules.maintenance.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.*;
@@ -69,6 +70,11 @@ public class WorkOrder extends BaseEntity {
 
     @Column(name = "technician_id")
     public UUID technicianId;
+
+    /** Techniciens affectés à l'OT ; technicianId reste le responsable principal. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "technician_ids", columnDefinition = "jsonb")
+    public JsonNode technicianIds = JsonNodeFactory.instance.arrayNode();
 
     @Column(name = "contractor_id")
     public UUID contractorId;

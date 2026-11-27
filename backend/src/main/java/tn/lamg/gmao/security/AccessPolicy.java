@@ -69,7 +69,7 @@ public class AccessPolicy {
         }
         if ("TECHNICIEN".equals(u.role)) {
             if (e instanceof WorkOrder w) return (
-                u.id.equals(w.technicianId) || teamMember(u.id, w.teamId)
+                assignedTechnician(w, u.id) || teamMember(u.id, w.teamId)
             );
             if (e instanceof Anomaly a) return canRead(store.find(WorkOrder.class, a.workOrderId));
             if (e instanceof ShiftAssignment a) return u.id.equals(a.userId);
@@ -139,10 +139,17 @@ public class AccessPolicy {
         if (
             !(
                 supervisor() ||
-                current.get().id.equals(w.technicianId) ||
+                assignedTechnician(w, current.get().id) ||
                 ("SOUS_TRAITANT".equals(current.get().role) && canRead(w))
             )
         ) throw new ApiException(403, "NOT_ASSIGNED", "Intervention non affectée à votre compte.");
+    }
+
+    private boolean assignedTechnician(WorkOrder w, UUID userId) {
+        if (userId.equals(w.technicianId)) return true;
+        if (w.technicianIds == null || !w.technicianIds.isArray()) return false;
+        for (var id : w.technicianIds) if (userId.toString().equals(id.asText())) return true;
+        return false;
     }
 
     public boolean ownShift(UUID shift, UUID user) {
