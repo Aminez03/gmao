@@ -24,7 +24,7 @@ public final class Planning {
             case "QUARTERLY" -> start.plusMonths(3 * n);
             case "SEMESTRAL" -> start.plusMonths(6 * n);
             case "ANNUAL" -> start.plusYears(n);
-            default -> throw new ApiException(422, "FREQUENCY", "FrÃ©quence inconnue.");
+            default -> throw new ApiException(422, "FREQUENCY", "Fréquence inconnue.");
         };
     }
 

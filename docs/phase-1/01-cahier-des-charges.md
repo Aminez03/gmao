@@ -12,20 +12,20 @@ Hors périmètre initial : dossiers médicaux, facturation des soins, paie, comp
 
 Toutes les lectures et écritures exigent une authentification, à l'exception de la connexion, de la demande de réinitialisation et des sondes techniques minimales. Un rôle accorde des capacités ; le périmètre de l'objet limite ensuite l'accès. Le rôle n'est jamais accepté comme preuve depuis le corps HTTP.
 
-| Action | ADMIN | RESPONSABLE_TECHNIQUE | TECHNICIEN | SERVICE_ACHATS | DIRECTION | SOUS_TRAITANT |
-|---|---|---|---|---|---|---|
-| Utilisateurs, rôles, paramètres | Gérer | Consulter annuaire technique | Profil propre | Profil propre | Profil propre | Profil propre |
-| Équipes, horaires, affectations | Gérer | Gérer | Lire son planning | — | Synthèse | Visites propres |
-| Patrimoine et gammes | Gérer | Gérer | Lire périmètre attribué | Lire références utiles | Synthèse | Équipements des missions autorisées |
-| Déclarer une panne | Oui | Oui | Oui | Oui | Oui | Seulement mission propre |
-| Affecter, suspendre, annuler un OT | Oui | Oui | — | — | — | — |
-| Exécuter un OT/checklist | Si affecté et habilité | Si affecté et habilité | OT affectés | — | — | Missions affectées |
-| Valider ou refuser un OT terminé | Oui, sauf propre exécution | Oui, sauf propre exécution | — | — | — | — |
-| Consignes | Superviser | Gérer | Émettre/recevoir pour son poste | — | Synthèse | — |
-| Demande d'achat | Créer | Créer et approuver | Créer | Traiter | Lire synthèse | Demande de matériel liée à mission |
-| Commande, réception, stock | Gérer | Lire, contrôle technique | Sortie autorisée sur OT | Gérer | Lire synthèse | — |
-| Rapports/coûts | Tous | Tous techniques | Ses temps et activités | Achats et stocks | Tous agrégés | Ses prestations |
-| Audit | Lire | Lire activités techniques | Historique de ses OT | Historique achats | Synthèse autorisée | Historique de ses missions |
+| Action | ADMIN | RESPONSABLE_TECHNIQUE | TECHNICIEN | SOUS_TRAITANT |
+| --- | --- | --- | --- | --- |
+| Utilisateurs, rôles, paramètres | Gérer | Consulter annuaire technique | Profil propre | Profil propre |
+| Équipes, horaires, affectations | Gérer | Gérer | Lire son planning | Visites propres |
+| Patrimoine et gammes | Gérer | Gérer | Lire périmètre attribué | Équipements des missions autorisées |
+| Déclarer une panne | Oui | Oui | Oui | Seulement mission propre |
+| Affecter, suspendre, annuler un OT | Oui | Oui | — | — |
+| Exécuter un OT/checklist | Si affecté et habilité | Si affecté et habilité | OT affectés | Missions affectées |
+| Valider ou refuser un OT terminé | Oui, sauf propre exécution | Oui, sauf propre exécution | — | — |
+| Consignes | Superviser | Gérer | Émettre/recevoir pour son poste | — |
+| Demande d'achat | Créer | Créer et approuver | Créer | Demande de matériel liée à mission |
+| Commande, réception, stock | Gérer | Lire, contrôle technique | Sortie autorisée sur OT | — |
+| Rapports/coûts | Tous | Tous techniques | Ses temps et activités | Ses prestations |
+| Audit | Lire | Lire activités techniques | Historique de ses OT | Historique de ses missions |
 
 `ADMIN` n'échappe pas à la séparation exécutant/validateur. Un second validateur habilité doit être disponible. Les comptes de prestataires expirent à la fin du contrat ; accès par entreprise ET mission affectée, pas par identifiant devinable. Les changements de rôle révoquent les sessions concernées.
 
@@ -33,7 +33,7 @@ Toutes les lectures et écritures exigent une authentification, à l'exception d
 
 | ID | Module | Exigences et résultat attendu |
 |---|---|---|
-| F01 | Authentification | Connexion/déconnexion, renouvellement et révocation des sessions, profil, changement et réinitialisation du mot de passe ; administration des six rôles ; journal de connexion. Désactivation plutôt que suppression d'un compte utilisé. |
+| F01 | Authentification | Connexion/déconnexion, renouvellement et révocation des sessions, profil, changement et réinitialisation du mot de passe ; administration des quatre rôles ; journal de connexion. Désactivation plutôt que suppression d'un compte utilisé. |
 | F02 | Équipes et postes | Équipes A/B/C, compétences et habilitations datées, horaires configurables, calendrier de rotation, 1 à 2 techniciens par poste, absences et remplacements approuvés. Alerte de sous-effectif et de défaut de compétence. |
 | F03 | Consignes | Équipe/poste émetteur et récepteur, auteur, date, priorité, anomalies, OT ouverts et équipements à surveiller, commentaire, accusé nominatif horodaté ; relance des consignes non reçues. |
 | F04 | Patrimoine | Hiérarchie établissement → bâtiment → étage → zone → local, équipements et sous-équipements ; code, catégorie, marque, modèle, série, mise en service, fournisseur, garantie, criticité C1–C4, état, QR, documents, photos et historique. CRUD avec archivage. |
@@ -44,7 +44,7 @@ Toutes les lectures et écritures exigent une authentification, à l'exception d
 | F09 | Stocks | Articles, magasins/emplacements, fournisseurs, seuils, quantités disponibles/réservées, entrées, sorties, retours et ajustements motivés, journal inaltérable et alertes. Réservation et consommation liées aux OT. |
 | F10 | Sous-traitance | Entreprises, contacts, domaines, contrats, visites, affectations, assistance sur site, matériel, justificatifs, photos, rapport et validation de prestation par responsable interne. |
 | F11 | Mobile/PWA | Interventions du poste, fiche équipement et scan QR avec saisie du code en secours, checklists/mesures/photos/temps, brouillons, file d'attente persistante, synchronisation et résolution des conflits visibles. |
-| F12 | Pilotage | Dashboard technique et direction, filtres période/équipe/équipement, pagination, Recharts, exports PDF et Excel soumis aux mêmes permissions ; indicateurs définis ci-dessous. |
+| F12 | Pilotage | Dashboard technique et administrateur, filtres période/équipe/équipement, pagination, Recharts, exports PDF et Excel soumis aux mêmes permissions ; indicateurs définis ci-dessous. |
 | F13 | Notifications | Nouvelle tâche, affectation, échéance/retard, panne critique, demande/réception achat, consigne, visite et échec de synchronisation ; centre in-app avec lu/non lu, lien vers objet autorisé. Courriel optionnel. |
 | F14 | Traçabilité | Auteur réel, instant serveur, action, objet, versions et motif ; historique des transitions, mesures, indisponibilités et modifications sensibles ; exports audités. |
 

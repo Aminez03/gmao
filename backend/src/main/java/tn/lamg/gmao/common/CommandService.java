@@ -51,9 +51,9 @@ public class CommandService {
             if (entity == null) throw new ApiException(404, "NOT_FOUND", "Ressource introuvable.");
             policy.read(entity);
             if (result instanceof com.fasterxml.jackson.databind.node.ObjectNode object) {
-                if (
-                    !current.has("ADMIN", "RESPONSABLE_TECHNIQUE", "SERVICE_ACHATS", "DIRECTION")
-                ) object.remove(java.util.List.of("unitCost", "unitPrice", "amount", "cost"));
+                if (!current.has("ADMIN", "RESPONSABLE_TECHNIQUE")) object.remove(
+                    java.util.List.of("unitCost", "unitPrice", "amount", "cost")
+                );
             }
         }
         return json.convertValue(result, Object.class);
@@ -65,7 +65,7 @@ public class CommandService {
         if (key == null) throw new ApiException(
             400,
             "IDEMPOTENCY_REQUIRED",
-            "ClÃ© d'opÃ©ration obligatoire."
+            "Clé d'opération obligatoire."
         );
         jdbc.queryForObject("select id from app_user where id=? for update", UUID.class, user.id);
         try {
@@ -80,7 +80,7 @@ public class CommandService {
                 if (!hash.equals(p.get("request_hash"))) throw new ApiException(
                     409,
                     "IDEMPOTENCY_CONFLICT",
-                    "Cette clÃ© dÃ©signe une autre opÃ©ration."
+                    "Cette clé désigne une autre opération."
                 );
                 return replay(route, (String) p.get("response"));
             }

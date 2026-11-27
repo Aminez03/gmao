@@ -29,22 +29,26 @@ import ArticleOutlined from '@mui/icons-material/ArticleOutlined';
 import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import QrCodeOutlined from '@mui/icons-material/QrCodeOutlined';
+import DeleteOutline from '@mui/icons-material/DeleteOutline';
 
 import { useAuth } from '../../app/Auth';
 import { api, command, download, Entity, errorText, headers } from '../../services/api';
 import { enqueue, fetchCached } from '../../services/offline';
 
-import { labels, human, canCreate, Field, Resource, referenceRoutes } from '../domain';
+import { labels, human, canCreate, Field, Resource, isReferenceField } from '../domain';
 import ResourceForm from '../ResourceForm';
 import { actions, Action } from '../actions';
 
 import { Status, display } from '../EntityDisplay';
 import ReferenceValue from '../ReferenceValue';
+import { businessReference } from '../businessReference';
 import ChecklistExecution from './ChecklistExecution';
 import Attachments from './Attachments';
 import AssetHistory from './AssetHistory';
+import AssetReadings from './AssetReadings';
+import WorkTimer from './WorkTimer';
 
-const hiddenFields = new Set(['answers', 'checklistSnapshot', 'steps']);
+const hiddenFields = new Set(['answers', 'checklistSnapshot', 'steps', 'qrToken']);
 const longFields = new Set([
   'description',
   'comment',
@@ -130,7 +134,21 @@ function DetailFields({
                 whiteSpace: 'pre-wrap',
               }}
             >
-              {referenceRoutes[field.name] ? (
+              {['workOrderIds', 'assetIds'].includes(field.name) &&
+              Array.isArray(entity[field.name]) ? (
+                <Stack spacing={0.5}>
+                  {entity[field.name].length
+                    ? entity[field.name].map((value: string) => (
+                        <ReferenceValue
+                          key={value}
+                          field={field.name === 'workOrderIds' ? 'workOrderId' : 'assetId'}
+                          value={value}
+                          resource={resource}
+                        />
+                      ))
+                    : '—'}
+                </Stack>
+              ) : isReferenceField(field.name) ? (
                 <ReferenceValue
                   field={field.name}
                   value={entity[field.name]}
@@ -172,6 +190,9 @@ export default function Detail({
   const { user } = useAuth();
   const [action, setAction] = useState<Action | null>(null);
   const [edit, setEdit] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const {
@@ -190,9 +211,27 @@ export default function Detail({
   const informationFields = fields.filter((field) => !['t', 'd'].includes(field.type));
   const availableActions = entity ? actions(resource.route, entity, user!.role) : [];
   const canEdit = canCreate(resource, user!.role);
+  const canDelete =
+    resource.route === 'checklists' && ['ADMIN', 'RESPONSABLE_TECHNIQUE'].includes(user!.role);
 
   async function changed() {
     await refetch();
+    await onRefresh();
+  }
+
+  async function deleteChecklist() {
+    if (!entity || !canDelete || entity.published || deleting || !navigator.onLine) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await api.delete(`/${resource.route}/${id}`, { headers: headers(entity.version) });
+    } catch (failure) {
+      setDeleteError(errorText(failure));
+      setDeleting(false);
+      return;
+    }
+    setConfirmDelete(false);
+    onClose();
     await onRefresh();
   }
 
@@ -252,15 +291,15 @@ export default function Detail({
                 variant="h5"
                 sx={{ mt: 0.5, overflowWrap: 'anywhere', lineHeight: 1.3 }}
               >
-                {entity?.title || entity?.name || entity?.number || entity?.code || resource.label}
+                {entity?.title ||
+                  entity?.name ||
+                  (entity ? businessReference(entity) : resource.label)}
               </Typography>
               {entity && (
                 <Stack direction="row" gap={1} flexWrap="wrap" alignItems="center" mt={1.5}>
                   {entity.status && <Status value={entity.status} />}
                   {entity.priority && <Status value={entity.priority} />}
-                  {(entity.number || entity.code) && (
-                    <Chip label={entity.number || entity.code} variant="outlined" size="small" />
-                  )}
+                  <Chip label={businessReference(entity)} variant="outlined" size="small" />
                   {entity.published && <Chip label="Gamme publiée" color="success" size="small" />}
                 </Stack>
               )}
@@ -331,6 +370,20 @@ export default function Detail({
                         {a.label}
                       </Button>
                     ))}
+                    {canDelete && (
+                      <Button
+                        color="error"
+                        variant="outlined"
+                        startIcon={<DeleteOutline />}
+                        disabled={!navigator.onLine || !!entity.published || deleting}
+                        onClick={() => {
+                          setDeleteError('');
+                          setConfirmDelete(true);
+                        }}
+                      >
+                        Supprimer
+                      </Button>
+                    )}
                     {resource.route === 'assets' && (
                       <Button
                         startIcon={<QrCodeOutlined />}
@@ -345,6 +398,11 @@ export default function Detail({
                       </Button>
                     )}
                   </Stack>
+                  {canDelete && entity.published && (
+                    <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                      Une gamme publiée ne peut pas être supprimée.
+                    </Typography>
+                  )}
                 </Paper>
               )}
               {resource.route === 'notifications' && entity.resourceType && entity.resourceId && (
@@ -381,7 +439,16 @@ export default function Detail({
                 ))}
               {resource.route === 'work-orders' && (
                 <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3 }}>
+                  {entity.status === 'EN_COURS' &&
+                    availableActions.some((a) => a.key === 'time') && (
+                      <WorkTimer order={entity} onSaved={changed} />
+                    )}
                   <ChecklistExecution order={entity} onRefresh={changed} />
+                </Paper>
+              )}
+              {resource.route === 'assets' && (
+                <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3 }}>
+                  <AssetReadings asset={entity} />
                 </Paper>
               )}
               {resource.route === 'assets' && (
@@ -427,6 +494,43 @@ export default function Detail({
           </Box>
           <Button onClick={onClose} variant="outlined">
             Fermer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={confirmDelete}
+        onClose={() => {
+          if (!deleting) setConfirmDelete(false);
+        }}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="delete-checklist-title"
+        aria-describedby="delete-checklist-description"
+      >
+        <DialogTitle id="delete-checklist-title">Supprimer la gamme ?</DialogTitle>
+        <DialogContent>
+          <Typography id="delete-checklist-description">
+            La gamme « {entity?.name} » sera retirée de la liste des gammes et checklists.
+          </Typography>
+          {deleteError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {deleteError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDelete(false)} disabled={deleting}>
+            Annuler
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            startIcon={<DeleteOutline />}
+            disabled={deleting || !navigator.onLine}
+            onClick={() => void deleteChecklist()}
+          >
+            {deleting ? 'Suppression…' : 'Confirmer la suppression'}
           </Button>
         </DialogActions>
       </Dialog>

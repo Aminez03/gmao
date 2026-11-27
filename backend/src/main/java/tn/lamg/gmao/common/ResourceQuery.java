@@ -40,25 +40,6 @@ public class ResourceQuery {
             scope = "e.userId=:uid";
             params.put("uid", u.id);
         } else if (name.equals("AuditEvent")) scope = "false";
-        else if (
-            u.role.equals("DIRECTION") &&
-            !Set.of("TeamMember", "ShiftAssignment", "Handover", "Attachment").contains(name)
-        ) scope = "true";
-        else if (
-            u.role.equals("SERVICE_ACHATS") &&
-            Set.of(
-                "InventoryItem",
-                "Supplier",
-                "Reservation",
-                "StockMovement",
-                "PurchaseRequest",
-                "PurchaseOrder",
-                "GoodsReceipt",
-                "Asset",
-                "WorkOrder",
-                "MaterialRequest"
-            ).contains(name)
-        ) scope = "true";
         else if (u.role.equals("TECHNICIEN")) {
             if (
                 Set.of(
@@ -116,7 +97,7 @@ public class ResourceQuery {
                 throw new ApiException(
                     422,
                     "INVALID_FILTER",
-                    "Cette ressource ne possÃ¨de pas d'Ã©tat."
+                    "Cette ressource ne possède pas d'état."
                 );
             }
             where += " and e.status=:status";
@@ -157,7 +138,7 @@ public class ResourceQuery {
         });
         long total = count.getSingleResult();
         long offset = (long) page * size;
-        ApiException.require(offset <= Integer.MAX_VALUE, "INVALID_PAGE", "Page trop Ã©loignÃ©e.");
+        ApiException.require(offset <= Integer.MAX_VALUE, "INVALID_PAGE", "Page trop éloignée.");
         var rows = mapper.dtos(
             data
                 .setFirstResult((int) offset)

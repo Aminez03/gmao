@@ -23,6 +23,7 @@ import {
   TablePagination,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 
@@ -36,11 +37,12 @@ import { useAuth } from '../../app/Auth';
 import { api, Entity, errorText, headers } from '../../services/api';
 import { fetchCached } from '../../services/offline';
 
-import { Resource, labels, human, canCreate, visible, referenceRoutes } from '../domain';
+import { Resource, labels, human, canCreate, visible, isReferenceField } from '../domain';
 import ResourceForm from '../ResourceForm';
 
 import { Status, display } from '../EntityDisplay';
 import ReferenceValue from '../ReferenceValue';
+import { businessReference } from '../businessReference';
 import Detail from './ResourceDetail';
 export interface ResourcePageProps {
   resource: Resource;
@@ -95,7 +97,7 @@ export default function ResourcePage({ resource, statusOptions }: ResourcePagePr
     'reserved',
   ];
 
-  const columns = [...resource.fields]
+  const detailColumns = [...resource.fields]
     .sort(
       (a, b) =>
         (preferred.includes(a.name) ? preferred.indexOf(a.name) : 99) -
@@ -109,6 +111,11 @@ export default function ResourcePage({ resource, statusOptions }: ResourcePagePr
         ),
     )
     .slice(0, 6);
+
+  const columns = [
+    { name: 'displayNumber', type: 's', required: false },
+    ...detailColumns.filter((field) => !['id', 'displayNumber', 'number'].includes(field.name)),
+  ];
 
   async function refresh() {
     await queryClient.invalidateQueries();
@@ -204,7 +211,9 @@ export default function ResourcePage({ resource, statusOptions }: ResourcePagePr
             <TableHead>
               <TableRow>
                 {columns.map((f) => (
-                  <TableCell key={f.name}>{labels[f.name] || human(f.name)}</TableCell>
+                  <TableCell key={f.name} scope="col">
+                    {labels[f.name] || human(f.name)}
+                  </TableCell>
                 ))}
                 <TableCell align="right">Détails</TableCell>
               </TableRow>
@@ -219,11 +228,28 @@ export default function ResourcePage({ resource, statusOptions }: ResourcePagePr
                   tabIndex={0}
                   onKeyDown={(e) => e.key === 'Enter' && setSelected(row.id)}
                 >
-                  {columns.map((f) => (
-                    <TableCell key={f.name}>
-                      {['status', 'priority', 'criticality'].includes(f.name) && row[f.name] ? (
+                  {columns.map((f, index) => (
+                    <TableCell
+                      key={f.name}
+                      component={index === 0 ? 'th' : 'td'}
+                      scope={index === 0 ? 'row' : undefined}
+                    >
+                      {index === 0 ? (
+                        <Tooltip title={businessReference(row)} arrow>
+                          <Box
+                            component="span"
+                            sx={{
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {businessReference(row)}
+                          </Box>
+                        </Tooltip>
+                      ) : ['status', 'priority', 'criticality'].includes(f.name) && row[f.name] ? (
                         <Status value={row[f.name]} />
-                      ) : referenceRoutes[f.name] ? (
+                      ) : isReferenceField(f.name) ? (
                         <ReferenceValue
                           field={f.name}
                           value={row[f.name]}

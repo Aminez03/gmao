@@ -5,7 +5,8 @@ const f = (name: string, type = 's', required = true): Field => ({ name, type, r
 export function actions(route: string, e: Entity, role: string): Action[] {
   const list: Action[] = [];
   const sup = ['ADMIN', 'RESPONSABLE_TECHNIQUE'].includes(role);
-  const buy = ['ADMIN', 'SERVICE_ACHATS'].includes(role);
+  const buy = role === 'ADMIN';
+  const execute = sup || ['TECHNICIEN', 'SOUS_TRAITANT'].includes(role);
   const add = (key: string, label: string, fields: Field[] = []) =>
     list.push({ key, label, fields });
   if (route === 'work-orders') {
@@ -15,9 +16,8 @@ export function actions(route: string, e: Entity, role: string): Action[] {
         f('teamId', 'u', false),
         f('contractorId', 'u', false),
       ]);
-    if (e.status === 'AFFECTEE' && role !== 'DIRECTION' && role !== 'SERVICE_ACHATS')
-      add('start', 'Démarrer', [f('safetyConfirmed', 'b')]);
-    if (e.status === 'EN_COURS' && role !== 'DIRECTION' && role !== 'SERVICE_ACHATS') {
+    if (e.status === 'AFFECTEE' && execute) add('start', 'Démarrer', [f('safetyConfirmed', 'b')]);
+    if (e.status === 'EN_COURS' && execute) {
       add('wait', 'Mettre en attente', [f('reason'), f('note', 'x')]);
       add('time', 'Enregistrer du temps', [f('startsAt', 't'), f('endsAt', 't')]);
       add('complete', 'Soumettre pour validation', [
@@ -27,8 +27,7 @@ export function actions(route: string, e: Entity, role: string): Action[] {
         f('report', 'x'),
       ]);
     }
-    if (e.status === 'EN_ATTENTE' && role !== 'DIRECTION' && role !== 'SERVICE_ACHATS')
-      add('resume', 'Reprendre');
+    if (e.status === 'EN_ATTENTE' && execute) add('resume', 'Reprendre');
     if (sup && e.status === 'TERMINEE') {
       add('validate', 'Valider l’intervention');
       add('reject-validation', 'Refuser la validation', [f('reason', 'x')]);
@@ -80,7 +79,7 @@ export function actions(route: string, e: Entity, role: string): Action[] {
     add('approve', 'Approuver l’absence');
     add('reject', 'Refuser', [f('reason', 'x')]);
   }
-  if (route === 'handovers' && !e.acknowledgedAt && role !== 'DIRECTION')
+  if (route === 'handovers' && !e.acknowledgedAt && (sup || role === 'TECHNICIEN'))
     add('acknowledge', 'Confirmer la réception');
   if (route === 'anomalies' && sup && !e.resolvedAt) {
     add('resolve', 'Enregistrer la disposition', [f('reason', 'x')]);

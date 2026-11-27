@@ -41,7 +41,7 @@ Ces éléments sont conservés sans modification. Aucune compilation, migration,
 - Horaires de référence proposés : 06:00–14:00, 14:00–22:00, 22:00–06:00, fuseau `Africa/Tunis` configurable.
 - Trois équipes identifiées A/B/C, mais renforts et remplacements indispensables pour couvrir congés, repos et absences. Trois équipes de taille minimale ne suffisent pas à garantir à elles seules une couverture permanente.
 - Aucun dossier patient dans la GMAO ; les photos et commentaires doivent éviter les données de santé identifiantes.
-- Le service administratif du workflow achat est porté initialement par `SERVICE_ACHATS`. Une séparation budgétaire supplémentaire reste à décider.
+- La gestion administrative du workflow achat est portée par `ADMIN`. Une séparation budgétaire supplémentaire reste à décider.
 - Budget, parc réel, nombre d'utilisateurs, reprise des données, durées de conservation, délai d'astreinte et hébergement restent à confirmer.
 
 ## Décision attendue

@@ -8,7 +8,7 @@ Développement autorisé par la demande « faire tout les phases », après remi
 |---|---|
 | 1 — Conception | Cahier des charges, UML, architecture, données, API cible, backlog et recette : [dossier initial](BRIEF.md). |
 | 2 — Données | Entités JPA par domaine, migration Flyway PostgreSQL, FK, unicités, versions et journaux protégés contre modification. |
-| 3 — Authentification | JWT court, refresh rotatif, session révocable, six rôles, comptes et profils, changement/reset du mot de passe, contrôles par objet et origine. |
+| 3 — Authentification | JWT court, refresh rotatif, session révocable, quatre rôles, comptes et profils, changement/reset du mot de passe, contrôles par objet et origine. |
 | 4 — Équipes | Équipes/membres/habilitations, planning en rotation, postes réels datés, affectations sans chevauchement, publication, absences, retrait/remplacement et consignes avec accusé nominatif. |
 | 5 — Patrimoine | Arbre bâtiment/étage/zone/local, équipements et sous-équipements, garanties, criticités, état, QR et fichiers privés. |
 | 6 — Préventif et checklists | Six fréquences, intervalle, règles fixe/glissante, occurrences manquées, unicité d'OT actif, scheduler, gammes publiées immuables et copie des étapes dans l'OT, réponses typées et anomalies bloquantes. |
@@ -36,7 +36,7 @@ Les résultats détaillés locaux sont dans `.cache/smoke-result.json`, `.cache/
 
 ## Choix d'implémentation et limites explicites
 
-La version prend en charge une clinique et un rôle principal par compte. Les permissions des six rôles sont définies côté serveur ; il ne s'agit pas d'un éditeur de rôles personnalisés. Le modèle physique compact regroupe certains concepts de la conception : gammes publiées et snapshots au lieu de trois tables de versions/exécutions ; une référence par demande d'achat ; documents servis par le backend depuis MinIO.
+La version prend en charge une clinique et un rôle principal par compte. Les permissions des quatre rôles sont définies côté serveur ; il ne s'agit pas d'un éditeur de rôles personnalisés. Le modèle physique compact regroupe certains concepts de la conception : gammes publiées et snapshots au lieu de trois tables de versions/exécutions ; une référence par demande d'achat ; documents servis par le backend depuis MinIO.
 
 La fenêtre d'anticipation préventive est de sept jours. Le planning généré reste à affecter et publier ; les obligations RH et renforts réels ne sont pas supposés satisfaits par l'algorithme. La validation d'une intervention ne remplace pas les procédures de sécurité techniques.
 

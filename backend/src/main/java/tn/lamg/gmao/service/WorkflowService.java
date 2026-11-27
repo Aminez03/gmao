@@ -72,26 +72,26 @@ public class WorkflowService {
         if (entity instanceof WorkOrder w) work(w, action, body);
         else if (entity instanceof PurchaseRequest p) purchase(p, action, body);
         else if (entity instanceof PurchaseOrder p) {
-            current.require("ADMIN", "SERVICE_ACHATS");
+            current.require("ADMIN");
             if (action.equals("place")) {
-                require(p.status.equals("BROUILLON"), "ORDER_STATE", "Commande dÃ©jÃ  envoyÃ©e.");
+                require(p.status.equals("BROUILLON"), "ORDER_STATE", "Commande déjà envoyée.");
                 p.status = "COMMANDEE";
                 store.find(PurchaseRequest.class, p.requestId).status = "COMMANDEE";
             } else if (action.equals("cancel")) {
                 require(
                     p.status.equals("BROUILLON"),
                     "ORDER_STATE",
-                    "Annulation rÃ©servÃ©e au brouillon."
+                    "Annulation réservée au brouillon."
                 );
                 required(body, "reason");
                 p.status = "ANNULEE";
             } else unknown();
         } else if (entity instanceof GoodsReceipt r) {
-            current.require("ADMIN", "SERVICE_ACHATS", "RESPONSABLE_TECHNIQUE");
+            current.require("ADMIN", "RESPONSABLE_TECHNIQUE");
             if (!action.equals("quality")) unknown();
             quality(r, body);
         } else if (entity instanceof InventoryItem item) {
-            current.require("ADMIN", "SERVICE_ACHATS");
+            current.require("ADMIN");
             if (!action.equals("adjust")) unknown();
             var qty = number(body, "quantity");
             ResourceService.positive(qty);
@@ -110,7 +110,7 @@ public class WorkflowService {
             movement(item, null, null, type, qty, item.unitCost, required(body, "reason"));
             allocate(item);
         } else if (entity instanceof Reservation r) {
-            current.require("ADMIN", "SERVICE_ACHATS", "RESPONSABLE_TECHNIQUE");
+            current.require("ADMIN", "RESPONSABLE_TECHNIQUE");
             if (!action.equals("release")) unknown();
             required(body, "reason");
             var item = store.lock(InventoryItem.class, r.itemId);
@@ -140,7 +140,7 @@ public class WorkflowService {
         } else if (entity instanceof FailureReport f) {
             current.require("ADMIN", "RESPONSABLE_TECHNIQUE");
             if (!action.equals("qualify")) unknown();
-            require(f.workOrderId == null, "ALREADY_QUALIFIED", "DÃ©claration dÃ©jÃ  qualifiÃ©e.");
+            require(f.workOrderId == null, "ALREADY_QUALIFIED", "Déclaration déjà qualifiée.");
             var data = new LinkedHashMap<String, Object>();
             data.put("title", required(body, "title"));
             data.put("description", f.description);
@@ -158,13 +158,13 @@ public class WorkflowService {
                 .stream()
                 .filter(a -> a.shiftId.equals(s.id))
                 .count();
-            require(n >= 1 && n <= 2, "SHIFT_COVERAGE", "Un Ã  deux techniciens requis.");
+            require(n >= 1 && n <= 2, "SHIFT_COVERAGE", "Un à deux techniciens requis.");
             for (var a : store.all(ShiftAssignment.class))
                 if (a.shiftId.equals(s.id)) resources.check(a);
             s.status = "PUBLIE";
         } else if (entity instanceof Absence a) {
             current.require("ADMIN", "RESPONSABLE_TECHNIQUE");
-            require(a.status.equals("SOUMISE"), "ABSENCE_STATE", "Absence dÃ©jÃ  traitÃ©e.");
+            require(a.status.equals("SOUMISE"), "ABSENCE_STATE", "Absence déjà traitée.");
             if (action.equals("approve")) {
                 for (var assignment : store.all(ShiftAssignment.class))
                     if (assignment.userId.equals(a.userId)) {
@@ -173,7 +173,7 @@ public class WorkflowService {
                             !shift.startsAt.isBefore(a.endsAt) ||
                                 !a.startsAt.isBefore(shift.endsAt),
                             "REPLACEMENT_REQUIRED",
-                            "Remplacez les affectations concernÃ©es avant approbation."
+                            "Remplacez les affectations concernées avant approbation."
                         );
                     }
                 a.status = "APPROUVEE";
@@ -186,9 +186,9 @@ public class WorkflowService {
             require(
                 policy.ownShift(h.toShiftId, current.get().id) || policy.supervisor(),
                 "HANDOVER_RECIPIENT",
-                "Vous n'Ãªtes pas membre du poste entrant."
+                "Vous n'êtes pas membre du poste entrant."
             );
-            require(h.acknowledgedAt == null, "ALREADY_ACKNOWLEDGED", "Consigne dÃ©jÃ  reÃ§ue.");
+            require(h.acknowledgedAt == null, "ALREADY_ACKNOWLEDGED", "Consigne déjà reçue.");
             h.acknowledgedAt = Instant.now();
             h.acknowledgedBy = current.get().id;
         } else if (entity instanceof Anomaly a) {
@@ -198,7 +198,7 @@ public class WorkflowService {
                 a.resolvedBy = current.get().id;
                 a.resolvedAt = Instant.now();
             } else if (action.equals("corrective-request")) {
-                require(a.correctiveReportId == null, "ALREADY_LINKED", "Demande dÃ©jÃ  crÃ©Ã©e.");
+                require(a.correctiveReportId == null, "ALREADY_LINKED", "Demande déjà créée.");
                 var w = store.find(WorkOrder.class, a.workOrderId);
                 var data = Map.<String, Object>of(
                     "assetId",
@@ -237,7 +237,7 @@ public class WorkflowService {
                 require(
                     Set.of("NOUVELLE", "AFFECTEE", "EN_ATTENTE").contains(w.status),
                     "INVALID_TRANSITION",
-                    "Intervention dÃ©jÃ  commencÃ©e."
+                    "Intervention déjà commencée."
                 );
                 w.technicianId = uuid(b, "technicianId");
                 w.teamId = uuid(b, "teamId");
@@ -263,7 +263,7 @@ public class WorkflowService {
                 w.status = "AFFECTEE";
                 events.notify(
                     w.technicianId,
-                    "Intervention affectÃ©e : " + w.number,
+                    "Intervention affectée : " + w.number,
                     "work-orders",
                     w.id
                 );
@@ -273,12 +273,12 @@ public class WorkflowService {
                 require(
                     w.status.equals("AFFECTEE"),
                     "INVALID_TRANSITION",
-                    "Affectez l'intervention avant dÃ©marrage."
+                    "Affectez l'intervention avant démarrage."
                 );
                 require(
                     Boolean.TRUE.equals(b.get("safetyConfirmed")),
                     "SAFETY_REQUIRED",
-                    "Confirmez les autorisations et contrÃ´les de sÃ©curitÃ©."
+                    "Confirmez les autorisations et contrôles de sécurité."
                 );
                 checkSkill(w);
                 w.safetyConfirmed = true;
@@ -290,7 +290,7 @@ public class WorkflowService {
                 require(
                     w.status.equals("EN_COURS"),
                     "INVALID_TRANSITION",
-                    "Intervention non commencÃ©e."
+                    "Intervention non commencée."
                 );
                 w.waitReason = required(b, "reason");
                 require(
@@ -311,7 +311,7 @@ public class WorkflowService {
                 if ("PIECE".equals(w.waitReason)) require(
                     ready(w.id),
                     "MISSING_PARTS",
-                    "PiÃ¨ces encore indisponibles."
+                    "Pièces encore indisponibles."
                 );
                 w.status = "EN_COURS";
                 checkSkill(w);
@@ -321,13 +321,13 @@ public class WorkflowService {
                 require(
                     w.status.equals("EN_COURS"),
                     "INVALID_TRANSITION",
-                    "DÃ©marrez l'intervention avant saisie."
+                    "Démarrez l'intervention avant saisie."
                 );
                 var answers = json.valueToTree(b.get("answers"));
                 require(
                     answers != null && answers.isObject(),
                     "ANSWER_FORMAT",
-                    "RÃ©ponses attendues sous forme d'objet."
+                    "Réponses attendues sous forme d'objet."
                 );
                 w.answers = answers;
             }
@@ -347,13 +347,13 @@ public class WorkflowService {
                 require(
                     minutes > 0 && minutes <= 1440,
                     "TIME_DURATION",
-                    "DurÃ©e attendue entre une minute et 24 heures."
+                    "Durée attendue entre une minute et 24 heures."
                 );
                 for (var other : store.all(TimeEntry.class))
                     if (other.userId.equals(t.userId)) require(
                         !t.startsAt.isBefore(other.endsAt) || !other.startsAt.isBefore(t.endsAt),
                         "TIME_OVERLAP",
-                        "Temps dÃ©jÃ  comptabilisÃ© sur cette pÃ©riode."
+                        "Temps déjà comptabilisé sur cette période."
                     );
                 t.minutes = (int) minutes;
                 t.createdBy = current.get().id;
@@ -376,7 +376,7 @@ public class WorkflowService {
                 require(
                     w.actualMinutes != null && w.actualMinutes > 0,
                     "TIME_REQUIRED",
-                    "Enregistrez le temps rÃ©ellement passÃ©."
+                    "Enregistrez le temps réellement passé."
                 );
                 w.diagnostic = required(b, "diagnostic");
                 w.cause = required(b, "cause");
@@ -384,7 +384,7 @@ public class WorkflowService {
                 w.report = required(b, "report");
                 w.completedAt = Instant.now();
                 w.status = "TERMINEE";
-                events.supervisors("Intervention Ã  valider : " + w.number, "work-orders", w.id);
+                events.supervisors("Intervention à valider : " + w.number, "work-orders", w.id);
             }
             case "validate" -> {
                 current.require("ADMIN", "RESPONSABLE_TECHNIQUE");
@@ -483,7 +483,7 @@ public class WorkflowService {
                         !s.validUntil.isBefore(LocalDate.now(ZoneId.of("Africa/Tunis")))
                 ),
             "SKILL_REQUIRED",
-            "Habilitation absente ou expirÃ©e."
+            "Habilitation absente ou expirée."
         );
     }
 
@@ -495,7 +495,7 @@ public class WorkflowService {
             require(
                 answer != null && !answer.isNull(),
                 "CHECKLIST_REQUIRED",
-                "Ã‰tape obligatoire : " + step.path("label").asText()
+                "Étape obligatoire : " + step.path("label").asText()
             );
             String type = step.path("type").asText();
             if (Set.of("CHECKBOX", "ATTESTATION").contains(type)) require(
@@ -514,7 +514,7 @@ public class WorkflowService {
                     answer.isTextual() &&
                         Set.of("CONFORME", "NON_CONFORME").contains(answer.asText()),
                     "CHECKLIST_TYPE",
-                    "ConformitÃ© invalide."
+                    "Conformité invalide."
                 );
                 anomaly = answer.asText().equals("NON_CONFORME");
             }
@@ -522,7 +522,7 @@ public class WorkflowService {
                 require(
                     answer.isNumber(),
                     "CHECKLIST_TYPE",
-                    "Mesure numÃ©rique obligatoire : " + key
+                    "Mesure numérique obligatoire : " + key
                 );
                 var v = answer.decimalValue();
                 anomaly =
@@ -537,7 +537,7 @@ public class WorkflowService {
                         file.targetId.equals(w.id) &&
                         file.contentType.startsWith("image/"),
                     "PHOTO_TARGET",
-                    "Photo non rattachÃ©e Ã  cette intervention."
+                    "Photo non rattachée à cette intervention."
                 );
             }
             if (anomaly) require(
@@ -551,7 +551,7 @@ public class WorkflowService {
                             a.resolvedAt != null
                     ),
                 "UNRESOLVED_ANOMALY",
-                "Anomalie Ã  traiter pour l'Ã©tape : " + key
+                "Anomalie à traiter pour l'étape : " + key
             );
         }
         require(
@@ -570,12 +570,12 @@ public class WorkflowService {
                 require(
                     p.createdBy.equals(current.get().id) || policy.supervisor(),
                     "NOT_REQUESTER",
-                    "RÃ©servÃ© au demandeur."
+                    "Réservé au demandeur."
                 );
-                require(p.status.equals("BROUILLON"), "PURCHASE_STATE", "Demande dÃ©jÃ  soumise.");
+                require(p.status.equals("BROUILLON"), "PURCHASE_STATE", "Demande déjà soumise.");
                 p.status = "SOUMISE";
                 events.supervisors(
-                    "Demande d'achat Ã  approuver : " + p.number,
+                    "Demande d'achat à approuver : " + p.number,
                     "purchase-requests",
                     p.id
                 );
@@ -612,11 +612,7 @@ public class WorkflowService {
     }
 
     private void quality(GoodsReceipt r, Map<String, Object> b) {
-        require(
-            r.status.equals("QUARANTAINE"),
-            "ALREADY_INSPECTED",
-            "RÃ©ception dÃ©jÃ  contrÃ´lÃ©e."
-        );
+        require(r.status.equals("QUARANTAINE"), "ALREADY_INSPECTED", "Réception déjà contrôlée.");
         var accepted = number(b, "accepted");
         var rejected = number(b, "rejected");
         require(
@@ -624,7 +620,7 @@ public class WorkflowService {
                 rejected.signum() >= 0 &&
                 accepted.add(rejected).compareTo(r.quantity) == 0,
             "QUALITY_QUANTITIES",
-            "AcceptÃ© + refusÃ© doit Ã©galer la quantitÃ© reÃ§ue."
+            "Accepté + refusé doit égaler la quantité reçue."
         );
         r.accepted = accepted;
         r.rejected = rejected;
@@ -642,7 +638,7 @@ public class WorkflowService {
                 "IN",
                 accepted,
                 order.unitPrice,
-                "RÃ©ception conforme " + r.deliveryReference
+                "Réception conforme " + r.deliveryReference
             );
             allocate(item);
         }
@@ -721,7 +717,7 @@ public class WorkflowService {
                 item.reserved = item.reserved.add(amount);
                 r.status = r.allocated.compareTo(r.quantity) == 0 ? "RESERVEE" : "PARTIELLE";
                 if (ready(r.workOrderId)) events.supervisors(
-                    "PiÃ¨ces disponibles : intervention Ã  replanifier",
+                    "Pièces disponibles : intervention à replanifier",
                     "work-orders",
                     r.workOrderId
                 );
@@ -741,13 +737,13 @@ public class WorkflowService {
         require(
             w.status.equals("EN_COURS"),
             "WORK_ORDER_STATE",
-            "Consommation rÃ©servÃ©e Ã  une intervention en cours."
+            "Consommation réservée à une intervention en cours."
         );
         var r = store.find(Reservation.class, uuid(b, "reservationId"));
         require(
             r.workOrderId.equals(w.id),
             "RESERVATION_TARGET",
-            "RÃ©servation d'une autre intervention."
+            "Réservation d'une autre intervention."
         );
         var item = store.lock(InventoryItem.class, r.itemId);
         store.manager().lock(r, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
@@ -756,7 +752,7 @@ public class WorkflowService {
         require(
             qty.compareTo(r.allocated.subtract(r.consumed)) <= 0,
             "INSUFFICIENT_STOCK",
-            "QuantitÃ© non rÃ©servÃ©e."
+            "Quantité non réservée."
         );
         item.stock = item.stock.subtract(qty);
         item.reserved = item.reserved.subtract(qty);
@@ -791,13 +787,13 @@ public class WorkflowService {
             require(
                 current.has("SOUS_TRAITANT") || policy.supervisor(),
                 "FORBIDDEN",
-                "RÃ´le non autorisÃ©."
+                "Rôle non autorisé."
             );
-            require(m.status.equals("PLANIFIEE"), "MISSION_STATE", "Mission dÃ©jÃ  soumise.");
+            require(m.status.equals("PLANIFIEE"), "MISSION_STATE", "Mission déjà soumise.");
             m.report = required(b, "report");
             m.visitedAt = Instant.now();
             m.status = "SOUMISE";
-            events.supervisors("Rapport prestataire Ã  valider", "external-interventions", m.id);
+            events.supervisors("Rapport prestataire à valider", "external-interventions", m.id);
         } else {
             current.require("ADMIN", "RESPONSABLE_TECHNIQUE");
             require(m.status.equals("SOUMISE"), "MISSION_STATE", "Rapport non soumis.");

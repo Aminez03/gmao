@@ -26,10 +26,6 @@ public class AccessPolicy {
         return current.has("ADMIN", "RESPONSABLE_TECHNIQUE");
     }
 
-    public boolean buying() {
-        return current.has("ADMIN", "SERVICE_ACHATS");
-    }
-
     public boolean canRead(BaseEntity e) {
         var u = current.get();
         if (e instanceof Notification n) return u.id.equals(n.recipientId);
@@ -38,6 +34,7 @@ public class AccessPolicy {
         if (e instanceof Absence a) return u.id.equals(a.userId);
         if (e instanceof UserSkill s) return u.id.equals(s.userId);
         if (e instanceof TimeEntry t) return u.id.equals(t.userId);
+        if (e instanceof AssetReading r) return canRead(store.find(Asset.class, r.assetId));
         if (e instanceof Attachment a) {
             try {
                 return canRead(store.find(typeForTarget(a.targetType), a.targetId));
@@ -96,24 +93,6 @@ public class AccessPolicy {
                 e instanceof Downtime
             );
         }
-        if ("DIRECTION".equals(u.role)) return !(
-            e instanceof UserSkill ||
-            e instanceof TeamMember ||
-            e instanceof ShiftAssignment ||
-            e instanceof Handover
-        );
-        if ("SERVICE_ACHATS".equals(u.role)) return (
-            e instanceof InventoryItem ||
-            e instanceof Supplier ||
-            e instanceof Reservation ||
-            e instanceof StockMovement ||
-            e instanceof PurchaseRequest ||
-            e instanceof PurchaseOrder ||
-            e instanceof GoodsReceipt ||
-            e instanceof Asset ||
-            e instanceof WorkOrder ||
-            e instanceof MaterialRequest
-        );
         return false;
     }
 
@@ -133,21 +112,13 @@ public class AccessPolicy {
         ) throw new ApiException(
             403,
             "COMMAND_REQUIRED",
-            "Utilisez une commande mÃ©tier pour cette ressource."
+            "Utilisez une commande métier pour cette ressource."
         );
         if (supervisor()) return;
-        if (
-            buying() &&
-            (e instanceof Supplier ||
-                e instanceof InventoryItem ||
-                e instanceof PurchaseOrder ||
-                e instanceof GoodsReceipt ||
-                e instanceof PurchaseRequest)
-        ) return;
         var u = current.get();
         if (
             (e instanceof FailureReport || e instanceof PurchaseRequest) &&
-            ("TECHNICIEN".equals(u.role) || "SERVICE_ACHATS".equals(u.role))
+            "TECHNICIEN".equals(u.role)
         ) return;
         if (e instanceof Absence a && u.id.equals(a.userId)) return;
         if (e instanceof Handover h && ownShift(h.fromShiftId, u.id)) return;
@@ -160,7 +131,7 @@ public class AccessPolicy {
             execute(store.find(WorkOrder.class, a.workOrderId));
             return;
         }
-        throw new ApiException(403, "FORBIDDEN", "Modification non autorisÃ©e.");
+        throw new ApiException(403, "FORBIDDEN", "Modification non autorisée.");
     }
 
     public void execute(WorkOrder w) {
@@ -171,11 +142,7 @@ public class AccessPolicy {
                 current.get().id.equals(w.technicianId) ||
                 ("SOUS_TRAITANT".equals(current.get().role) && canRead(w))
             )
-        ) throw new ApiException(
-            403,
-            "NOT_ASSIGNED",
-            "Intervention non affectÃ©e Ã  votre compte."
-        );
+        ) throw new ApiException(403, "NOT_ASSIGNED", "Intervention non affectée à votre compte.");
     }
 
     public boolean ownShift(UUID shift, UUID user) {

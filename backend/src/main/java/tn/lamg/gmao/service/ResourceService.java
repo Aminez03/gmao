@@ -128,7 +128,7 @@ public class ResourceService {
             events.audit(route, e, "CREATE");
             if (
                 e instanceof FailureReport || e instanceof PurchaseRequest || e instanceof Handover
-            ) events.supervisors("Nouvelle entrÃ©e : " + route, route, e.id);
+            ) events.supervisors("Nouvelle entrée : " + route, route, e.id);
             return mapper.dto(e);
         } catch (ReflectiveOperationException ex) {
             throw new IllegalStateException(ex);
@@ -153,7 +153,7 @@ public class ResourceService {
         var e = store.lock(registry.type(route), id);
         policy.read(e);
         policy.manage(e);
-        current.require("ADMIN", "RESPONSABLE_TECHNIQUE", "SERVICE_ACHATS");
+        current.require("ADMIN", "RESPONSABLE_TECHNIQUE");
         store.expect(e, version);
         editable(e);
         ApiException.require(
@@ -176,6 +176,7 @@ public class ResourceService {
 
     private static final Set<String> SERVER = Set.of(
         "id",
+        "displayNumber",
         "version",
         "createdAt",
         "updatedAt",
@@ -229,7 +230,7 @@ public class ResourceService {
             if (SERVER.contains(key) && !linkedWork && !assetStatus) throw new ApiException(
                 422,
                 "SERVER_FIELD",
-                "Champ gÃ©rÃ© par le serveur : " + key
+                "Champ géré par le serveur : " + key
             );
             if (
                 e instanceof WorkOrder &&
@@ -263,7 +264,7 @@ public class ResourceService {
             ) throw new ApiException(
                 422,
                 "NEW_PLAN_REQUIRED",
-                "DÃ©sactivez ce plan et crÃ©ez un nouveau pour changer sa rÃ¨gle."
+                "Désactivez ce plan et créez un nouveau pour changer sa règle."
             );
             try {
                 var f = e.getClass().getDeclaredField(key);
@@ -299,14 +300,11 @@ public class ResourceService {
             c.published = false;
         }
         if (e instanceof PreventivePlan p) {
-            long planNumber = ((Number) store.manager()
-                .createNativeQuery("select nextval('preventive_plan_number_seq')")
-                .getSingleResult()).longValue();
-            p.number = "PM-" + String.format(Locale.ROOT, "%03d", planNumber);
+            p.number = store.nextNumber("PM", "preventive_plan_number_seq");
             ApiException.require(
                 p.anchorLocal != null && p.zoneId != null,
                 "PLAN_ANCHOR",
-                "Date de rÃ©fÃ©rence et fuseau obligatoires."
+                "Date de référence et fuseau obligatoires."
             );
             if (p.active == null) p.active = true;
             p.nextDueAt = LocalDateTime.parse(p.anchorLocal)
@@ -314,13 +312,10 @@ public class ResourceService {
                 .toInstant();
         }
         if (e instanceof Contract c) {
-            long contractNumber = ((Number) store.manager()
-                .createNativeQuery("select nextval('contract_number_seq')")
-                .getSingleResult()).longValue();
-            c.number = "CT-" + String.format(Locale.ROOT, "%03d", contractNumber);
+            c.number = store.nextNumber("CT", "contract_number_seq");
         }
         if (e instanceof WorkOrder w) {
-            w.number = "OT-" + w.id.toString().substring(0, 8).toUpperCase();
+            w.number = store.nextNumber("OT", "work_order_display_number_seq");
             w.status = "NOUVELLE";
             w.actualMinutes = 0;
             w.answers = json.createObjectNode();
@@ -351,27 +346,27 @@ public class ResourceService {
         if (e instanceof Checklist c) ApiException.require(
             !Boolean.TRUE.equals(c.published),
             "IMMUTABLE_VERSION",
-            "Une gamme publiÃ©e est immuable. CrÃ©ez une nouvelle version."
+            "Une gamme publiée est immuable. Créez une nouvelle version."
         );
         if (e instanceof WorkOrder w) ApiException.require(
             Set.of("NOUVELLE", "AFFECTEE").contains(w.status),
             "IMMUTABLE_WORK_ORDER",
-            "Seule une intervention non commencÃ©e peut Ãªtre modifiÃ©e."
+            "Seule une intervention non commencée peut être modifiée."
         );
         if (e instanceof Handover h) ApiException.require(
             h.acknowledgedAt == null,
             "IMMUTABLE_HANDOVER",
-            "Consigne dÃ©jÃ  reÃ§ue ; crÃ©ez un complÃ©ment."
+            "Consigne déjà reçue ; créez un complément."
         );
         if (e instanceof Shift s) ApiException.require(
             "BROUILLON".equals(s.status),
             "PUBLISHED_SHIFT",
-            "Poste dÃ©jÃ  publiÃ©."
+            "Poste déjà publié."
         );
         if (e instanceof ExternalIntervention m) ApiException.require(
             "PLANIFIEE".equals(m.status),
             "IMMUTABLE_MISSION",
-            "Mission dÃ©jÃ  soumise."
+            "Mission déjà soumise."
         );
     }
 
@@ -406,12 +401,12 @@ public class ResourceService {
             if (expected != null) ApiException.require(
                 parent != null && expected.equals(store.find(Location.class, parent).type),
                 "LOCATION_PARENT",
-                "Respectez bÃ¢timent â†’ Ã©tage â†’ zone â†’ local."
+                "Respectez bâtiment → étage → zone → local."
             );
             else ApiException.require(
                 parent == null,
                 "LOCATION_ROOT",
-                "Un bÃ¢timent est une racine."
+                "Un bâtiment est une racine."
             );
             while (parent != null) {
                 ApiException.require(
@@ -431,24 +426,20 @@ public class ResourceService {
             ApiException.require(
                 Set.of("C1", "C2", "C3", "C4").contains(a.criticality),
                 "CRITICALITY",
-                "CriticitÃ© invalide."
+                "Criticité invalide."
             );
             ApiException.require(
                 Set.of("EN_SERVICE", "INDISPONIBLE", "SURVEILLANCE", "HORS_SERVICE").contains(
                     a.status
                 ),
                 "ASSET_STATUS",
-                "Ã‰tat invalide."
+                "État invalide."
             );
             var seen = new HashSet<UUID>();
             seen.add(a.id);
             var parent = a.parentId;
             while (parent != null) {
-                ApiException.require(
-                    seen.add(parent),
-                    "ASSET_CYCLE",
-                    "Cycle Ã©quipement interdit."
-                );
+                ApiException.require(seen.add(parent), "ASSET_CYCLE", "Cycle équipement interdit.");
                 parent = store.find(Asset.class, parent).parentId;
             }
         }
@@ -456,7 +447,7 @@ public class ResourceService {
             ApiException.require(
                 c.steps.isArray() && c.steps.size() > 0 && c.steps.size() <= 100,
                 "CHECKLIST_STEPS",
-                "DÃ©finissez entre 1 et 100 Ã©tapes."
+                "Définissez entre 1 et 100 étapes."
             );
             var keys = new HashSet<String>();
             for (var step : c.steps) {
@@ -465,7 +456,7 @@ public class ResourceService {
                         !step.path("key").asText().isBlank() &&
                         !step.path("label").asText().isBlank(),
                     "CHECKLIST_KEYS",
-                    "ClÃ©s d'Ã©tape uniques et libellÃ©s obligatoires."
+                    "Clés d'étape uniques et libellés obligatoires."
                 );
                 ApiException.require(
                     Set.of(
@@ -478,12 +469,12 @@ public class ResourceService {
                         "ATTESTATION"
                     ).contains(step.path("type").asText()),
                     "CHECKLIST_TYPE",
-                    "Type d'Ã©tape invalide."
+                    "Type d'étape invalide."
                 );
                 if (step.hasNonNull("min") && step.hasNonNull("max")) ApiException.require(
                     step.get("min").decimalValue().compareTo(step.get("max").decimalValue()) <= 0,
                     "THRESHOLDS",
-                    "Bornes inversÃ©es."
+                    "Bornes inversées."
                 );
             }
         }
@@ -501,12 +492,12 @@ public class ResourceService {
                     ).contains(p.frequency) &&
                     Set.of("FIXE", "GLISSANT").contains(p.mode),
                 "PLAN_RULE",
-                "RÃ¨gle prÃ©ventive invalide."
+                "Règle préventive invalide."
             );
             ApiException.require(
                 Boolean.TRUE.equals(store.find(Checklist.class, p.checklistId).published),
                 "CHECKLIST_UNPUBLISHED",
-                "Une gamme publiÃ©e est requise."
+                "Une gamme publiée est requise."
             );
         }
         if (e instanceof WorkOrder w) {
@@ -515,7 +506,7 @@ public class ResourceService {
                 Set.of("P1", "P2", "P3", "P4").contains(w.priority) &&
                     Set.of("CORRECTIVE", "PREVENTIVE").contains(w.type),
                 "WORK_ORDER_INPUT",
-                "PrioritÃ©/type invalide."
+                "Priorité/type invalide."
             );
         }
         if (e instanceof Shift s) ApiException.require(
@@ -549,14 +540,14 @@ public class ResourceService {
             ApiException.require(
                 contract.contractorId.equals(m.contractorId),
                 "CONTRACTOR_MISMATCH",
-                "Entreprise diffÃ©rente du contrat."
+                "Entreprise différente du contrat."
             );
             if (m.plannedAt != null) {
                 var date = m.plannedAt.atZone(ZoneId.of("Africa/Tunis")).toLocalDate();
                 ApiException.require(
                     !date.isBefore(contract.startsOn) && !date.isAfter(contract.endsOn),
                     "CONTRACT_EXPIRED",
-                    "Visite hors pÃ©riode du contrat."
+                    "Visite hors période du contrat."
                 );
             }
         }
@@ -569,7 +560,7 @@ public class ResourceService {
         if (e instanceof Downtime d) ApiException.require(
             d.endsAt == null || !d.endsAt.isBefore(d.startsAt),
             "DOWNTIME_DATES",
-            "Dates d'indisponibilitÃ© invalides."
+            "Dates d'indisponibilité invalides."
         );
     }
 
@@ -610,7 +601,7 @@ public class ResourceService {
         ApiException.require(
             value != null && value.signum() > 0,
             "POSITIVE_QUANTITY",
-            "QuantitÃ© strictement positive requise."
+            "Quantité strictement positive requise."
         );
     }
 }

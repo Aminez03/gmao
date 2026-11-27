@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
 import tn.lamg.gmao.common.*;
+import tn.lamg.gmao.modules.patrimoine.service.AssetReadingService;
 import tn.lamg.gmao.security.*;
 import tn.lamg.gmao.service.*;
 
@@ -16,12 +17,20 @@ public class SyncController {
     final WorkflowService workflows;
     final ResourceService resources;
     final CurrentUser current;
+    final AssetReadingService readings;
 
-    public SyncController(CommandService c, WorkflowService w, ResourceService r, CurrentUser u) {
+    public SyncController(
+        CommandService c,
+        WorkflowService w,
+        ResourceService r,
+        CurrentUser u,
+        AssetReadingService readings
+    ) {
         commands = c;
         workflows = w;
         resources = r;
         current = u;
+        this.readings = readings;
     }
 
     public record Operation(
@@ -44,10 +53,29 @@ public class SyncController {
             }
             try {
                 ApiException.require(
-                    Set.of("answers", "time").contains(op.action()),
+                    Set.of("answers", "time", "asset-reading").contains(op.action()),
                     "OFFLINE_ACTION_DENIED",
-                    "Cette action nÃ©cessite une connexion directe."
+                    "Cette action nécessite une connexion directe."
                 );
+                if (op.action().equals("asset-reading")) {
+                    Object result = commands.run(
+                        op.operationId(),
+                        "asset-readings/" + op.resourceId() + "/create",
+                        op.payload(),
+                        () -> readings.create(op.resourceId(), op.payload())
+                    );
+                    results.add(
+                        Map.of(
+                            "operationId",
+                            op.operationId(),
+                            "state",
+                            "APPLIED",
+                            "resource",
+                            result
+                        )
+                    );
+                    continue;
+                }
                 String version = "\"" + op.expectedVersion() + "\"";
                 Object result = commands.run(
                     op.operationId(),

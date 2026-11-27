@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from './app/Auth';
 import Shell from './app/Shell';
 import Login from './features/auth/pages/LoginPage';
+import { alertTheme } from './app/alertTheme';
 export default function App() {
   const [dark, setDark] = useState(localStorage.getItem('gmao-theme') === 'dark');
   const [online, setOnline] = useState(navigator.onLine);
@@ -33,6 +34,7 @@ export default function App() {
         },
         shape: { borderRadius: 14 },
         components: {
+          MuiAlert: alertTheme(dark),
           MuiPaper: {
             styleOverrides: {
               root: { backgroundImage: 'none' },

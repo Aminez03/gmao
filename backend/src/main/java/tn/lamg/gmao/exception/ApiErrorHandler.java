@@ -22,7 +22,7 @@ public class ApiErrorHandler {
         MethodArgumentNotValidException.class,
     })
     ResponseEntity<ProblemDetail> invalid(Exception e) {
-        return problem(422, "INVALID_INPUT", "VÃ©rifiez les champs et leurs formats.");
+        return problem(422, "INVALID_INPUT", "Vérifiez les champs et leurs formats.");
     }
 
     @ExceptionHandler({ DataIntegrityViolationException.class })
@@ -30,7 +30,7 @@ public class ApiErrorHandler {
         return problem(
             409,
             "INTEGRITY_CONFLICT",
-            "RÃ©fÃ©rence invalide, doublon ou ressource encore utilisÃ©e."
+            "Référence invalide, doublon ou ressource encore utilisée."
         );
     }
 
@@ -39,7 +39,7 @@ public class ApiErrorHandler {
         return problem(
             412,
             "VERSION_CONFLICT",
-            "Cette ressource a Ã©tÃ© modifiÃ©e. Rechargez et comparez vos saisies."
+            "Cette ressource a été modifiée. Rechargez et comparez vos saisies."
         );
     }
 
@@ -49,12 +49,12 @@ public class ApiErrorHandler {
         org.springframework.web.bind.MissingServletRequestParameterException.class,
     })
     ResponseEntity<ProblemDetail> request(Exception e) {
-        return problem(400, "INVALID_REQUEST", "ParamÃ¨tre ou en-tÃªte requis absent ou invalide.");
+        return problem(400, "INVALID_REQUEST", "Paramètre ou en-tête requis absent ou invalide.");
     }
 
     @ExceptionHandler({ org.springframework.web.multipart.MaxUploadSizeExceededException.class })
     ResponseEntity<ProblemDetail> size(Exception e) {
-        return problem(413, "FILE_TOO_LARGE", "Fichier supÃ©rieur Ã  la taille autorisÃ©e.");
+        return problem(413, "FILE_TOO_LARGE", "Fichier supérieur à la taille autorisée.");
     }
 
     private ResponseEntity<ProblemDetail> problem(int status, String code, String detail) {

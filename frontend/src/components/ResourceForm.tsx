@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
+  AlertTitle,
   Button,
   Stack,
   TextField,
   MenuItem,
   Checkbox,
   FormControlLabel,
+  FormHelperText,
   Typography,
   IconButton,
   Paper,
@@ -27,6 +29,7 @@ import {
   human,
 } from './domain';
 import { api, Entity, errorText } from '../services/api';
+import { businessReference } from './businessReference';
 export function StepsEditor({
   value,
   onChange,
@@ -166,8 +169,12 @@ function ReferenceField({
           <MenuItem value={item.id} key={item.id}>
             {field.name === 'replacementForId'
               ? shiftAssignmentLabel(item)
-              : item.number || item.code || item.name || item.title || item.id.slice(0, 8)}
-            {item.name && item.code ? ` · ${item.name}` : ''}
+              : route === 'users'
+                ? item.name
+                : businessReference(item)}
+            {route !== 'users' && field.name !== 'replacementForId' && (item.name || item.title)
+              ? ` · ${item.name || item.title}`
+              : ''}
           </MenuItem>
         ))}
     </TextField>
@@ -190,8 +197,23 @@ export default function ResourceForm({
 }) {
   const fields = customFields || editableFields(resource!);
   const [error, setError] = useState('');
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!error) return;
+    errorRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+    errorRef.current?.focus({ preventScroll: true });
+  }, [error]);
   const schema = z.record(z.string(), z.any()).superRefine((values, ctx) => {
     for (const f of fields) {
+      if (
+        f.name === 'steps' &&
+        (!Array.isArray(values.steps) || values.steps.length < 1 || values.steps.length > 100)
+      )
+        ctx.addIssue({
+          code: 'custom',
+          path: [f.name],
+          message: 'Ajoutez entre 1 et 100 étapes à la gamme.',
+        });
       if (
         f.required &&
         (values[f.name] === undefined || values[f.name] === null || values[f.name] === '')
@@ -254,9 +276,18 @@ export default function ResourceForm({
     }
   }
   return (
-    <form onSubmit={handleSubmit(submit)}>
+    <form
+      onSubmit={handleSubmit(submit, () =>
+        setError('Vérifiez les champs signalés avant d’enregistrer.'),
+      )}
+    >
       <Stack spacing={2.5}>
-        {error && <Alert severity="error">{error}</Alert>}
+        {error && (
+          <Alert severity="error" ref={errorRef} tabIndex={-1} aria-live="assertive">
+            <AlertTitle>Enregistrement impossible</AlertTitle>
+            {error}
+          </Alert>
+        )}
         {fields.map((f) => (
           <Controller
             name={f.name}
@@ -264,10 +295,15 @@ export default function ResourceForm({
             key={f.name}
             render={({ field }) =>
               f.name === 'steps' ? (
-                <StepsEditor
-                  value={Array.isArray(field.value) ? field.value : []}
-                  onChange={field.onChange}
-                />
+                <Stack spacing={1}>
+                  <StepsEditor
+                    value={Array.isArray(field.value) ? field.value : []}
+                    onChange={field.onChange}
+                  />
+                  {errors[f.name] && (
+                    <FormHelperText error>{errors[f.name]?.message?.toString()}</FormHelperText>
+                  )}
+                </Stack>
               ) : f.type === 'b' ? (
                 <FormControlLabel
                   label={labels[f.name] || f.name}

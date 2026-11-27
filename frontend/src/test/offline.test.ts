@@ -22,11 +22,14 @@ describe('Saisies hors ligne', () => {
     expect(await cached('alice', 'work-order')).toEqual({ answer: 42 });
   });
   it('conserve chaque saisie et sa version attendue', async () => {
-    await enqueue('alice', { id: 'order', version: 3 }, 'answers', { answers: { test: true } });
+    await enqueue('alice', { id: 'order', displayNumber: 'OT-001', version: 3 }, 'answers', {
+      answers: { test: true },
+    });
     await enqueue('alice', { id: 'order', version: 3 }, 'time', { minutes: 5 });
     const ops = await pending('alice');
     expect(ops).toHaveLength(2);
     expect(ops.map((o) => o.expectedVersion)).toEqual([3, 4]);
+    expect(ops[0].displayNumber).toBe('OT-001');
     expect(await pending('bob')).toHaveLength(0);
   });
   it('ne supprime pas une saisie en conflit', async () => {

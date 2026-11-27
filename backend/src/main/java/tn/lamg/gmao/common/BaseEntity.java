@@ -10,6 +10,16 @@ public abstract class BaseEntity {
     @Id
     public UUID id = UUID.randomUUID();
 
+    @org.hibernate.annotations.Generated
+    @Column(
+        name = "display_number",
+        nullable = false,
+        insertable = false,
+        updatable = false,
+        length = 40
+    )
+    public String displayNumber;
+
     @Version
     public long version;
 

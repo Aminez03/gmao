@@ -112,7 +112,7 @@ public class AuthController {
         );
         if (Boolean.TRUE.equals(revoked)) {
             jdbc.update("update auth_session set revoked=true where user_id=?", s.userId);
-            throw new ApiException(401, "SESSION_REUSED", "Session r?utilis?e : reconnectez-vous.");
+            throw new ApiException(401, "SESSION_REUSED", "Session réutilisée : reconnectez-vous.");
         }
         if (s.expiresAt.isBefore(Instant.now())) throw new ApiException(
             401,
@@ -120,7 +120,7 @@ public class AuthController {
             "Reconnectez-vous."
         );
         var u = users.findById(s.userId).orElseThrow();
-        if (!u.active) throw new ApiException(401, "ACCOUNT_DISABLED", "Compte dÃ©sactivÃ©.");
+        if (!u.active) throw new ApiException(401, "ACCOUNT_DISABLED", "Compte désactivé.");
         s.revoked = true;
         sessions.saveAndFlush(s);
         return issue(u, response);
@@ -158,7 +158,7 @@ public class AuthController {
             );
             var m = new SimpleMailMessage();
             m.setTo(u.email);
-            m.setSubject("RÃ©initialisation GMAO");
+            m.setSubject("Réinitialisation GMAO");
             m.setText(origin + "/reset-password?token=" + raw);
             mail.send(m);
         });
@@ -176,7 +176,7 @@ public class AuthController {
         if (rows.isEmpty()) throw new ApiException(
             422,
             "INVALID_TOKEN",
-            "Lien expirÃ© ou dÃ©jÃ  utilisÃ©."
+            "Lien expiré ou déjà utilisé."
         );
         var row = rows.getFirst();
         var u = users.findById((UUID) row.get("user_id")).orElseThrow();
@@ -211,6 +211,7 @@ public class AuthController {
     public static Map<String, Object> profile(UserAccount u) {
         var m = new LinkedHashMap<String, Object>();
         m.put("id", u.id);
+        m.put("displayNumber", u.displayNumber);
         m.put("email", u.email);
         m.put("name", u.name);
         m.put("role", u.role);
@@ -224,7 +225,7 @@ public class AuthController {
         if (!origin.equals(req.getHeader("Origin"))) throw new ApiException(
             403,
             "ORIGIN_DENIED",
-            "Origine de la requÃªte non autorisÃ©e."
+            "Origine de la requête non autorisée."
         );
     }
 
@@ -255,7 +256,7 @@ public class AuthController {
         if (q.size() >= 30) throw new ApiException(
             429,
             "TOO_MANY_ATTEMPTS",
-            "Trop de tentatives. RÃ©essayez plus tard."
+            "Trop de tentatives. Réessayez plus tard."
         );
         q.add(now);
     }

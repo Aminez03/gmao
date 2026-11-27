@@ -32,17 +32,17 @@ public class CurrentUser {
         );
         var session = sessions
             .findById(UUID.fromString(jwt.getClaimAsString("sid")))
-            .orElseThrow(() -> new ApiException(401, "SESSION_REVOKED", "Session expirÃ©e."));
+            .orElseThrow(() -> new ApiException(401, "SESSION_REVOKED", "Session expirée."));
         if (
             session.revoked || session.expiresAt.isBefore(java.time.Instant.now())
-        ) throw new ApiException(401, "SESSION_REVOKED", "Session expirÃ©e.");
+        ) throw new ApiException(401, "SESSION_REVOKED", "Session expirée.");
         var u = users
             .findById(UUID.fromString(jwt.getSubject()))
             .orElseThrow(() -> new ApiException(401, "UNAUTHENTICATED", "Compte absent."));
         if (!u.active || !session.userId.equals(u.id)) throw new ApiException(
             401,
             "ACCOUNT_DISABLED",
-            "Compte dÃ©sactivÃ©."
+            "Compte désactivé."
         );
         if (request != null) request.setAttribute(cacheKey, u, 0);
         return u;
@@ -56,7 +56,7 @@ public class CurrentUser {
         if (!has(roles)) throw new ApiException(
             403,
             "FORBIDDEN",
-            "Action non autorisÃ©e pour votre rÃ´le."
+            "Action non autorisée pour votre rôle."
         );
     }
 }

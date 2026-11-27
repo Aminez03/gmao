@@ -23,7 +23,7 @@ public class SecurityConfig {
     @Bean
     SecretKeySpec signingKey(@Value("${gmao.jwt-secret}") String secret) {
         if (secret.length() < 48) throw new IllegalStateException(
-            "JWT_SECRET doit contenir au moins 48 caractÃ¨res."
+            "JWT_SECRET doit contenir au moins 48 caractères."
         );
         return new SecretKeySpec(
             secret.getBytes(java.nio.charset.StandardCharsets.UTF_8),

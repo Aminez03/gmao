@@ -8,7 +8,7 @@ Ce catalogue complète le document de conception. La liste initiale était une c
 
 Login : `{email,password}`. Reset : `{token,password}`. Changement authentifié : `{currentPassword,newPassword}`. Les POST publics de l'authentification vérifient `Origin` et limitent les tentatives. Refresh utilise un cookie HttpOnly ; les tokens d'accès restent en mémoire du navigateur. Logout révoque les sessions du compte.
 
-`GET /users` (admin ou annuaire limité pour responsable), `POST /users`, `PUT /users/{id}` (admin). Corps : `{email,name,role,active,contractorId?,password?}`. Six rôles fixes, un rôle principal par compte. L'édition des comptes et mots de passe invalide leurs sessions.
+`GET /users` (admin ou annuaire limité pour responsable), `POST /users`, `PUT /users/{id}` (admin). Corps : `{email,name,role,active,contractorId?,password?}`. Quatre rôles fixes, un rôle principal par compte. L'édition des comptes et mots de passe invalide leurs sessions.
 
 ## Ressources
 

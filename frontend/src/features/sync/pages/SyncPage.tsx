@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  Box,
   Button,
   Dialog,
   DialogContent,
@@ -11,8 +12,16 @@ import {
 } from '@mui/material';
 import { useAuth } from '../../../app/Auth';
 import { api, Entity, errorText } from '../../../services/api';
-import { pending, uploads, synchronize, resolveOperation } from '../../../services/offline';
-import { human } from '../../../components/domain';
+import {
+  pending,
+  uploads,
+  synchronize,
+  resolveOperation,
+  downloadFieldData,
+  enqueue,
+} from '../../../services/offline';
+import { getResource, human } from '../../../components/domain';
+import ReferenceValue from '../../../components/ReferenceValue';
 export default function SyncPage() {
   const { user } = useAuth();
   const [items, setItems] = useState<Entity[]>([]);
@@ -20,6 +29,7 @@ export default function SyncPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [fieldData, setFieldData] = useState('');
   const [compare, setCompare] = useState<{ op: Entity; server: Entity } | null>(null);
   async function reload() {
     setItems(await pending(user!.id));
@@ -73,18 +83,67 @@ export default function SyncPage() {
           </Button>
         </Stack>
       </Paper>
+      <Paper variant="outlined" sx={{ p: 2.5 }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ sm: 'center' }}
+          gap={1.5}
+        >
+          <Box>
+            <Typography fontWeight={700}>Préparer le mode hors connexion</Typography>
+            <Typography color="text.secondary" variant="body2">
+              Téléchargez vos équipements et interventions pour les retrouver sans réseau, y compris
+              avec leur QR code.
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            disabled={!navigator.onLine || busy}
+            onClick={async () => {
+              setError('');
+              try {
+                const result = await downloadFieldData(user!.id);
+                setFieldData(
+                  `${result.assets} équipement(s) et ${result.workOrders} intervention(s) téléchargés.`,
+                );
+              } catch (e) {
+                setError(errorText(e));
+              }
+            }}
+          >
+            Télécharger les données terrain
+          </Button>
+        </Stack>
+        {fieldData && (
+          <Alert severity="success" sx={{ mt: 1.5 }}>
+            {fieldData}
+          </Alert>
+        )}
+      </Paper>
       {items.map((op) => (
         <Paper key={op.operationId} variant="outlined" sx={{ p: 3 }}>
           <Stack spacing={1}>
             <Typography fontWeight={600}>
-              {op.action === 'answers' ? 'Réponses à la checklist' : 'Temps d’intervention'} ·{' '}
-              {op.resourceId.slice(0, 8)}
+              {op.action === 'answers'
+                ? 'Réponses à la checklist'
+                : op.action === 'asset-reading'
+                  ? 'Relevé équipement'
+                  : 'Temps d’intervention'}{' '}
+              ·{' '}
+              {op.displayNumber || (
+                <ReferenceValue
+                  field={op.action === 'asset-reading' ? 'assetId' : 'workOrderId'}
+                  value={op.resourceId}
+                  resource={getResource(op.action === 'asset-reading' ? 'assets' : 'work-orders')}
+                />
+              )}
             </Typography>
             <Typography color="text.secondary">
               {human(op.state)} · {new Date(op.createdAt).toLocaleString('fr-TN')}
             </Typography>
             {op.detail && <Alert severity="warning">{op.detail}</Alert>}
-            {op.state !== 'PENDING' && (
+            {op.state !== 'PENDING' && op.action !== 'asset-reading' && (
               <Button
                 disabled={!navigator.onLine}
                 onClick={async () => {
@@ -98,6 +157,28 @@ export default function SyncPage() {
               >
                 Comparer et résoudre
               </Button>
+            )}
+            {op.state !== 'PENDING' && op.action === 'asset-reading' && (
+              <>
+                <Alert severity="warning">
+                  Le relevé reste conservé sur cet appareil. Vérifiez la saisie et la connexion
+                  avant de la renvoyer.
+                </Alert>
+                <Button
+                  disabled={!navigator.onLine}
+                  onClick={async () => {
+                    await enqueue(
+                      user!.id,
+                      { id: op.resourceId, displayNumber: op.displayNumber, version: 0 },
+                      'asset-reading',
+                      op.payload,
+                    );
+                    await reload();
+                  }}
+                >
+                  Renvoyer ce relevé
+                </Button>
+              </>
             )}
           </Stack>
         </Paper>

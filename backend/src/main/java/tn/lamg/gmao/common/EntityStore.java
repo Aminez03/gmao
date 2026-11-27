@@ -14,6 +14,14 @@ public class EntityStore {
         return em;
     }
 
+    public String nextNumber(String prefix, String sequence) {
+        return (String) em
+            .createNativeQuery("select next_business_number(:prefix, cast(:sequence as regclass))")
+            .setParameter("prefix", prefix)
+            .setParameter("sequence", sequence)
+            .getSingleResult();
+    }
+
     public <T extends BaseEntity> T find(Class<T> type, UUID id) {
         var e = em.find(type, id);
         if (e == null || e.archived) throw new ApiException(
@@ -75,7 +83,7 @@ public class EntityStore {
         if (!match.equals("\"" + e.version + "\"")) throw new ApiException(
             412,
             "VERSION_CONFLICT",
-            "La ressource a changÃ©. Rechargez avant de poursuivre."
+            "La ressource a changé. Rechargez avant de poursuivre."
         );
     }
 }

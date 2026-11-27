@@ -9,12 +9,18 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
   InputAdornment,
   Paper,
   Skeleton,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
   TextField,
   Typography,
 } from '@mui/material';
@@ -22,17 +28,18 @@ import { alpha } from '@mui/material/styles';
 import AddRounded from '@mui/icons-material/AddRounded';
 import CloseRounded from '@mui/icons-material/CloseRounded';
 import EditOutlined from '@mui/icons-material/EditOutlined';
-import MailOutlineRounded from '@mui/icons-material/MailOutlineRounded';
 import SearchRounded from '@mui/icons-material/SearchRounded';
 import ShieldOutlined from '@mui/icons-material/ShieldOutlined';
 import PeopleOutlineRounded from '@mui/icons-material/PeopleOutlineRounded';
 import ResourceForm from '../../../components/ResourceForm';
 import { Field, human } from '../../../components/domain';
+import { businessReference } from '../../../components/businessReference';
 import { api, headers, Entity, errorText } from '../../../services/api';
 import { useAuth } from '../../../app/Auth';
 export default function UsersPage() {
   const { user } = useAuth();
   const canView = !!user && ['ADMIN', 'RESPONSABLE_TECHNIQUE'].includes(user.role);
+  const canManage = user?.role === 'ADMIN';
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['users', user?.id],
     enabled: canView,
@@ -40,15 +47,26 @@ export default function UsersPage() {
   });
   const [editing, setEditing] = useState<Entity | null>(null);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const accounts: Entity[] = data?.items || [];
   const searchTerm = search.trim().toLocaleLowerCase('fr');
   const filteredAccounts = accounts.filter((account) =>
-    [account.name, account.email, human(account.role)].some((value) =>
+    [account.displayNumber, account.name, account.email, human(account.role)].some((value) =>
       String(value || '')
         .toLocaleLowerCase('fr')
         .includes(searchTerm),
     ),
   );
+  const currentPage = Math.min(
+    page,
+    Math.max(0, Math.ceil(filteredAccounts.length / rowsPerPage) - 1),
+  );
+  const visibleAccounts = filteredAccounts.slice(
+    currentPage * rowsPerPage,
+    (currentPage + 1) * rowsPerPage,
+  );
+  const columnCount = canManage ? 6 : 5;
   const fields: Field[] = [
     { name: 'name', type: 's', required: true },
     { name: 'email', type: 's', required: true },
@@ -75,7 +93,7 @@ export default function UsersPage() {
             Retrouvez les membres de votre équipe et leurs droits d’accès.
           </Typography>
         </Box>
-        {user!.role === 'ADMIN' && (
+        {canManage && (
           <Button
             startIcon={<AddRounded />}
             variant="contained"
@@ -104,9 +122,12 @@ export default function UsersPage() {
         </Stack>
         <TextField
           label="Rechercher un utilisateur"
-          placeholder="Nom, e-mail ou rôle"
+          placeholder="Numéro, nom, e-mail ou rôle"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setPage(0);
+          }}
           size="small"
           sx={{ width: { xs: '100%', sm: 300 } }}
           slotProps={{
@@ -120,178 +141,178 @@ export default function UsersPage() {
           }}
         />
       </Stack>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: 'minmax(0, 1fr)',
-            md: 'repeat(2, minmax(0, 1fr))',
-            xl: 'repeat(3, minmax(0, 1fr))',
-          },
-          gap: 2.5,
-        }}
-      >
-        {isLoading
-          ? [0, 1, 2].map((key) => (
-              <Paper variant="outlined" key={key} sx={{ p: 3, borderRadius: 3 }}>
-                <Skeleton variant="circular" width={54} height={54} />
-                <Skeleton width="65%" height={36} sx={{ mt: 2 }} />
-                <Skeleton width="85%" />
-                <Skeleton height={48} sx={{ mt: 2 }} />
-              </Paper>
-            ))
-          : filteredAccounts.map((account) => {
-              const isCurrent = account.id === user!.id;
-              const initials =
-                String(account.name || '')
-                  .trim()
-                  .split(/\s+/)
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .map((part) => part[0])
-                  .join('')
-                  .toLocaleUpperCase('fr') || '?';
-              return (
-                <Paper
-                  component="article"
-                  variant="outlined"
-                  key={account.id}
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    minWidth: 0,
-                    overflow: 'hidden',
-                    borderRadius: 3,
-                    transition: 'border-color .2s ease',
-                    borderColor: isCurrent ? 'primary.main' : undefined,
-                    '&:hover': { borderColor: 'primary.main' },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      height: 5,
-                      bgcolor: (theme) =>
-                        alpha(
-                          account.active ? theme.palette.primary.main : theme.palette.text.disabled,
-                          0.6,
-                        ),
-                    }}
-                  />
-                  <Box sx={{ p: 2.5, flex: 1 }}>
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="flex-start"
-                      gap={1.5}
-                      mb={2}
-                    >
-                      <Avatar
+      <Paper variant="outlined" sx={{ overflow: 'hidden', borderRadius: 3 }}>
+        <TableContainer aria-busy={isLoading}>
+          <Table aria-label="Utilisateurs et accès" sx={{ minWidth: canManage ? 900 : 750 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell scope="col">Numéro</TableCell>
+                <TableCell scope="col">Utilisateur</TableCell>
+                <TableCell scope="col">Adresse e-mail</TableCell>
+                <TableCell scope="col">Rôle</TableCell>
+                <TableCell scope="col">État</TableCell>
+                {canManage && (
+                  <TableCell align="right" scope="col">
+                    Actions
+                  </TableCell>
+                )}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {isLoading
+                ? [0, 1, 2, 3, 4].map((row) => (
+                    <TableRow key={row}>
+                      {Array.from({ length: columnCount }, (_, column) => (
+                        <TableCell key={column}>
+                          <Skeleton height={32} />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : visibleAccounts.map((account) => {
+                    const isCurrent = account.id === user!.id;
+                    const initials =
+                      String(account.name || '')
+                        .trim()
+                        .split(/\s+/)
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((part) => part[0])
+                        .join('')
+                        .toLocaleUpperCase('fr') || '?';
+                    return (
+                      <TableRow
+                        hover
+                        key={account.id}
                         sx={{
-                          width: 56,
-                          height: 56,
-                          borderRadius: 3,
-                          fontSize: '1.1rem',
-                          fontWeight: 700,
-                          bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
-                          color: 'primary.main',
+                          bgcolor: (theme) =>
+                            isCurrent ? alpha(theme.palette.primary.main, 0.04) : undefined,
                         }}
-                        variant="rounded"
                       >
-                        {initials}
-                      </Avatar>
-                      <Chip
-                        size="small"
-                        label={account.active ? 'Actif' : 'Désactivé'}
-                        color={account.active ? 'success' : 'default'}
-                        variant="outlined"
-                      />
-                    </Stack>
-                    <Stack direction="row" alignItems="center" gap={1} mb={0.75} flexWrap="wrap">
-                      <Typography component="h3" variant="h6" sx={{ overflowWrap: 'anywhere' }}>
-                        {account.name || 'Utilisateur sans nom'}
-                      </Typography>
-                      {isCurrent && (
-                        <Chip
-                          label="Vous"
-                          size="small"
-                          color="primary"
-                          sx={{ height: 22, fontSize: '0.7rem' }}
-                        />
-                      )}
-                    </Stack>
+                        <TableCell
+                          component="th"
+                          scope="row"
+                          sx={{
+                            fontWeight: 700,
+                            whiteSpace: 'nowrap',
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          {businessReference(account)}
+                        </TableCell>
+                        <TableCell>
+                          <Stack direction="row" alignItems="center" gap={1.5}>
+                            <Avatar
+                              sx={{
+                                width: 36,
+                                height: 36,
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                                color: 'primary.main',
+                              }}
+                            >
+                              {initials}
+                            </Avatar>
+                            <Typography
+                              variant="body2"
+                              fontWeight={600}
+                              sx={{ whiteSpace: 'nowrap' }}
+                            >
+                              {account.name || 'Utilisateur sans nom'}
+                            </Typography>
+                            {isCurrent && <Chip label="Vous" size="small" color="primary" />}
+                          </Stack>
+                        </TableCell>
+                        <TableCell sx={{ color: 'text.secondary' }}>
+                          {account.email || '—'}
+                        </TableCell>
+                        <TableCell>
+                          <Chip label={human(account.role)} size="small" variant="outlined" />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            size="small"
+                            label={account.active ? 'Actif' : 'Désactivé'}
+                            color={account.active ? 'success' : 'default'}
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        {canManage && (
+                          <TableCell align="right">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={<EditOutlined />}
+                              onClick={() => setEditing(account)}
+                              aria-label={`Modifier le compte de ${account.name}`}
+                              sx={{ whiteSpace: 'nowrap' }}
+                            >
+                              Modifier
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
+              {!isLoading && !error && !filteredAccounts.length && (
+                <TableRow>
+                  <TableCell colSpan={columnCount} sx={{ p: 0 }}>
                     <Stack
-                      direction="row"
-                      gap={1}
                       alignItems="center"
-                      sx={{ color: 'text.secondary', minWidth: 0 }}
-                    >
-                      <MailOutlineRounded sx={{ fontSize: 17, flexShrink: 0 }} />
-                      <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
-                        {account.email}
-                      </Typography>
-                    </Stack>
-                    <Box
                       sx={{
-                        mt: 2.5,
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.035),
+                        py: 5,
+                        px: 2,
+                        textAlign: 'center',
+                        position: { xs: 'sticky', sm: 'static' },
+                        left: 0,
+                        width: { xs: 'calc(100vw - 66px)', sm: '100%' },
                       }}
                     >
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: 'block', mb: 0.5 }}
-                      >
-                        Rôle et permissions
+                      <PeopleOutlineRounded sx={{ fontSize: 42, color: 'text.disabled', mb: 1 }} />
+                      <Typography variant="h6">
+                        {searchTerm ? 'Aucun utilisateur trouvé' : 'Aucun compte pour le moment'}
                       </Typography>
-                      <Stack direction="row" gap={1} alignItems="center">
-                        <ShieldOutlined sx={{ fontSize: 18, color: 'primary.main' }} />
-                        <Typography variant="body2" fontWeight={600}>
-                          {human(account.role)}
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  </Box>
-                  {user!.role === 'ADMIN' && (
-                    <>
-                      <Divider />
-                      <Box sx={{ px: 2.5, py: 1.5 }}>
-                        <Button
-                          variant="outlined"
-                          fullWidth
-                          startIcon={<EditOutlined />}
-                          onClick={() => setEditing(account)}
-                          aria-label={`Modifier le compte de ${account.name}`}
-                          sx={{ borderRadius: 2 }}
-                        >
-                          Modifier le compte
+                      <Typography color="text.secondary" mt={1}>
+                        {searchTerm
+                          ? 'Essayez un autre numéro, un nom, une adresse e-mail ou un rôle.'
+                          : 'Les comptes de votre équipe apparaîtront ici.'}
+                      </Typography>
+                      {searchTerm && (
+                        <Button onClick={() => setSearch('')} sx={{ mt: 2 }}>
+                          Effacer la recherche
                         </Button>
-                      </Box>
-                    </>
-                  )}
-                </Paper>
-              );
-            })}
-      </Box>
-      {!isLoading && !error && !filteredAccounts.length && (
-        <Paper variant="outlined" sx={{ p: 5, textAlign: 'center', borderRadius: 3 }}>
-          <PeopleOutlineRounded sx={{ fontSize: 42, color: 'text.disabled', mb: 1 }} />
-          <Typography variant="h6">
-            {searchTerm ? 'Aucun utilisateur trouvé' : 'Aucun compte pour le moment'}
-          </Typography>
-          <Typography color="text.secondary" mt={1}>
-            {searchTerm
-              ? 'Essayez un autre nom, une adresse e-mail ou un rôle.'
-              : 'Les comptes de votre équipe apparaîtront ici.'}
-          </Typography>
-          {searchTerm && (
-            <Button onClick={() => setSearch('')} sx={{ mt: 2 }}>
-              Effacer la recherche
-            </Button>
-          )}
-        </Paper>
-      )}
+                      )}
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={filteredAccounts.length}
+          page={currentPage}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={[10, 25, 50]}
+          onPageChange={(_, nextPage) => setPage(nextPage)}
+          onRowsPerPageChange={(event) => {
+            setRowsPerPage(Number(event.target.value));
+            setPage(0);
+          }}
+          labelRowsPerPage="Lignes par page"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+          getItemAriaLabel={(type) =>
+            ({
+              first: 'Première page',
+              last: 'Dernière page',
+              next: 'Page suivante',
+              previous: 'Page précédente',
+            })[type]
+          }
+        />
+      </Paper>
       <Dialog
         open={!!editing}
         onClose={() => setEditing(null)}

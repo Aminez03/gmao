@@ -24,6 +24,7 @@ export function display(value: unknown) {
   if (typeof value === 'object') return JSON.stringify(value);
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value))
     return new Date(value).toLocaleString('fr-TN');
-  if (typeof value === 'string' && /^[0-9a-f]{8}-/.test(value)) return value.slice(0, 8);
+  if (typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value))
+    return 'Référence indisponible';
   return String(value);
 }

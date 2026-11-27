@@ -54,22 +54,23 @@ public class FileController {
         ApiException.require(
             policy.supervisor() ||
                 current.get().id.equals(target.createdBy) ||
+                (target instanceof Asset && current.has("TECHNICIEN")) ||
                 target instanceof tn.lamg.gmao.modules.maintenance.model.WorkOrder,
             "FILE_FORBIDDEN",
-            "Ajout de document non autorisÃ©."
+            "Ajout de document non autorisé."
         );
         if (target instanceof tn.lamg.gmao.modules.maintenance.model.WorkOrder w) policy.execute(w);
         ApiException.require(
             !file.isEmpty() && file.getSize() <= 25 * 1024 * 1024,
             "FILE_SIZE",
-            "Fichier vide ou supÃ©rieur Ã  25 Mio."
+            "Fichier vide ou supérieur à 25 Mio."
         );
         byte[] bytes = file.getBytes();
         String type = detect(bytes);
         ApiException.require(
             type != null,
             "FILE_TYPE",
-            "Formats acceptÃ©s : PDF, JPEG, PNG et WebP."
+            "Formats acceptés : PDF, JPEG, PNG et WebP."
         );
         var a = new Attachment();
         a.targetType = targetType;

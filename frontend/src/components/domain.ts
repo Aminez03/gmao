@@ -19,6 +19,8 @@ export function getResource(route: string): Resource {
 }
 
 export const labels: Record<string, string> = {
+  id: 'ID',
+  displayNumber: 'Numéro',
   code: 'Code',
   name: 'Nom',
   currentPassword: 'Mot de passe actuel',
@@ -141,14 +143,7 @@ export const options: Record<string, string[]> = {
   frequency: ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'SEMESTRAL', 'ANNUAL'],
   mode: ['FIXE', 'GLISSANT'],
   severity: ['FAIBLE', 'MOYENNE', 'CRITIQUE'],
-  role: [
-    'ADMIN',
-    'RESPONSABLE_TECHNIQUE',
-    'TECHNICIEN',
-    'SERVICE_ACHATS',
-    'DIRECTION',
-    'SOUS_TRAITANT',
-  ],
+  role: ['ADMIN', 'RESPONSABLE_TECHNIQUE', 'TECHNICIEN', 'SOUS_TRAITANT'],
   zoneId: ['Africa/Tunis'],
   targetType: ['assets', 'work-orders', 'failure-reports', 'external-interventions', 'contracts'],
 };
@@ -190,12 +185,17 @@ export const referenceRoutes: Record<string, string> = {
   reservationId: 'inventory/reservations',
 };
 
+export function isReferenceField(name: string) {
+  return !!referenceRoutes[name] || ['resourceId', 'targetId'].includes(name);
+}
+
 export function shiftAssignmentLabel(assignment: { userNames?: Record<string, string> }) {
   return assignment.userNames?.userId || 'Utilisateur indisponible';
 }
 
 export const generated = new Set([
   'id',
+  'displayNumber',
   'version',
   'createdAt',
   'updatedAt',
@@ -265,8 +265,6 @@ export const human = (s: string) =>
     GLISSANT: 'Depuis la validation',
     RESPONSABLE_TECHNIQUE: 'Responsable technique',
     TECHNICIEN: 'Technicien',
-    SERVICE_ACHATS: 'Service achats',
-    DIRECTION: 'Direction',
     SOUS_TRAITANT: 'Sous-traitant',
     ADMIN: 'Administrateur',
   })[s] ||
@@ -289,15 +287,6 @@ export function canCreate(r: Resource, role: string) {
   )
     return false;
   if (['ADMIN', 'RESPONSABLE_TECHNIQUE'].includes(role)) return true;
-  if (role === 'SERVICE_ACHATS')
-    return [
-      'suppliers',
-      'inventory/items',
-      'purchase-requests',
-      'purchase-orders',
-      'goods-receipts',
-      'failure-reports',
-    ].includes(r.route);
   if (role === 'TECHNICIEN')
     return ['failure-reports', 'purchase-requests', 'absences', 'handovers'].includes(r.route);
   return role === 'SOUS_TRAITANT' && r.route === 'material-requests';
@@ -330,26 +319,5 @@ export function visible(r: Resource, role: string) {
       'external-interventions',
       'material-requests',
     ].includes(r.route);
-  if (role === 'SERVICE_ACHATS')
-    return [
-      'assets',
-      'work-orders',
-      'suppliers',
-      'inventory/items',
-      'inventory/reservations',
-      'inventory/movements',
-      'purchase-requests',
-      'purchase-orders',
-      'goods-receipts',
-      'material-requests',
-      'notifications',
-    ].includes(r.route);
-  return ![
-    'audit-events',
-    'user-skills',
-    'team-members',
-    'shift-assignments',
-    'handovers',
-    'absences',
-  ].includes(r.route);
+  return false;
 }

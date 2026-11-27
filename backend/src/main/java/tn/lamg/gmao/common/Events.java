@@ -44,7 +44,7 @@ public class Events {
         a.action = action;
         a.resourceType = "users";
         a.resourceId = user.id;
-        a.details = "RÃ´le " + user.role + " ; actif=" + user.active + " ; version=" + user.version;
+        a.details = "Rôle " + user.role + " ; actif=" + user.active + " ; version=" + user.version;
         store.save(a);
     }
 

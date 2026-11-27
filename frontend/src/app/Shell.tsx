@@ -13,12 +13,14 @@ import PrecisionManufacturingOutlined from '@mui/icons-material/PrecisionManufac
 import QrCodeScanner from '@mui/icons-material/QrCodeScanner';
 import ShoppingBagOutlined from '@mui/icons-material/ShoppingBagOutlined';
 import SyncOutlined from '@mui/icons-material/SyncOutlined';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import {
   Alert,
   AppBar,
   Avatar,
   Box,
   Chip,
+  Collapse,
   Drawer,
   IconButton,
   List,
@@ -39,6 +41,7 @@ import { pending, synchronize } from '../services/offline';
 import AssistantChat from '../features/assistant/AssistantChat';
 import { useAuth } from './Auth';
 import AppRoutes from './AppRoutes';
+import { resourceIcons } from './navigationIcons';
 const groupIcons: Record<string, React.ReactNode> = {
   patrimoine: <PrecisionManufacturingOutlined />,
   equipes: <GroupsOutlined />,
@@ -62,6 +65,18 @@ export default function Shell({
   const [count, setCount] = useState(0);
   const [error, setError] = useState('');
   const [profile, setProfile] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const activeGroup = resources.find(
+      (resource) => location.pathname === `/m/${resource.route}`,
+    )?.group;
+    return activeGroup ? { [activeGroup]: true } : {};
+  });
+  useEffect(() => {
+    const activeGroup = resources.find(
+      (resource) => location.pathname === `/m/${resource.route}`,
+    )?.group;
+    if (activeGroup) setExpandedGroups((groups) => ({ ...groups, [activeGroup]: true }));
+  }, [location.pathname]);
   useEffect(() => {
     const update = () => void pending(user!.id).then((p) => setCount(p.length));
     update();
@@ -83,7 +98,7 @@ export default function Shell({
     enabled: online,
   });
   const unread = notifications?.items.filter((n: Entity) => !n.readAt).length || 0;
-  function nav(to: string, label: string, icon?: React.ReactNode) {
+  function nav(to: string, label: string, icon?: React.ReactNode, nested = false) {
     const selected = location.pathname === to;
     return (
       <ListItemButton
@@ -91,12 +106,14 @@ export default function Shell({
         component={Link}
         to={to}
         selected={selected}
+        aria-current={selected ? 'page' : undefined}
         onClick={() => setOpen(false)}
         sx={{
           mx: 1.25,
           mb: 0.45,
           minHeight: 42,
           borderRadius: 2.5,
+          pl: nested ? 2 : undefined,
           transition: 'background-color .18s ease, color .18s ease, transform .18s ease',
           '&:hover': { bgcolor: 'action.hover', transform: 'translateX(2px)' },
           '&.Mui-selected': {
@@ -107,11 +124,13 @@ export default function Shell({
           },
         }}
       >
-        <ListItemIcon sx={{ minWidth: 36 }}>{icon}</ListItemIcon>
+        {icon && (
+          <ListItemIcon sx={{ minWidth: nested ? 28 : 36, flexShrink: 0 }}>{icon}</ListItemIcon>
+        )}
         <ListItemText
           primary={label}
           slotProps={{
-          primary: { fontSize: 13.5, fontWeight: selected ? 700 : 500 },
+            primary: { fontSize: 13.5, fontWeight: selected ? 700 : 500 },
           }}
         />
       </ListItemButton>
@@ -129,7 +148,7 @@ export default function Shell({
           </Typography>
         </Box>
       </Stack>
-      <Box sx={{ overflowY: 'auto', flex: 1 }}>
+      <Box component="nav" aria-label="Navigation principale" sx={{ overflowY: 'auto', flex: 1 }}>
         <List>
           {nav('/', 'Dashboard', <DashboardOutlined />)}
           {nav('/planning', 'Planning des postes', <CalendarMonthOutlined />)}
@@ -139,20 +158,65 @@ export default function Shell({
         {['maintenance', 'patrimoine', 'equipes', 'achats', 'prestataires', 'pilotage'].map(
           (group) => {
             const list = resources.filter((r) => r.group === group && visible(r, user!.role));
+            const expanded = !!expandedGroups[group];
+            const active = list.some((resource) => location.pathname === `/m/${resource.route}`);
             return list.length ? (
-              <Box key={group}>
-                <Typography
-                  variant="overline"
-                  color="text.secondary"
-                  sx={{ display: 'block', px: 2.75, mt: 2.25, mb: 0.75, fontWeight: 750, letterSpacing: '.1em' }}
+              <Box key={group} sx={{ mb: 0.5 }}>
+                <ListItemButton
+                  component="button"
+                  type="button"
+                  aria-expanded={expanded}
+                  onClick={() =>
+                    setExpandedGroups((groups) => ({ ...groups, [group]: !groups[group] }))
+                  }
+                  sx={{
+                    mx: 1.25,
+                    width: 'calc(100% - 20px)',
+                    borderRadius: 2.5,
+                    minHeight: 46,
+                    textAlign: 'left',
+                    color: active ? 'primary.main' : 'text.primary',
+                    bgcolor: active ? 'action.hover' : undefined,
+                  }}
                 >
-                  {human(group)}
-                </Typography>
-                <List disablePadding>
-                  {list.map((r) => (
-                    <Box key={r.route}>{nav(`/m/${r.route}`, r.label, groupIcons[group])}</Box>
-                  ))}
-                </List>
+                  <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>
+                    {groupIcons[group]}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={human(group)}
+                    slotProps={{ primary: { fontSize: 13.5, fontWeight: 700 } }}
+                  />
+                  <ExpandMore
+                    fontSize="small"
+                    sx={{
+                      flexShrink: 0,
+                      transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                      transition: 'transform 180ms ease',
+                      '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+                    }}
+                  />
+                </ListItemButton>
+                <Collapse in={expanded} timeout="auto" unmountOnExit>
+                  <List
+                    disablePadding
+                    aria-label={human(group)}
+                    sx={{ ml: 4.5, mr: 1, my: 0.75, borderLeft: 1, borderColor: 'divider' }}
+                  >
+                    {list.map((r) => {
+                      const Icon = resourceIcons[r.route];
+                      return (
+                        <Box key={r.route}>
+                          {nav(
+                            `/m/${r.route}`,
+                            r.label,
+                            Icon ? <Icon fontSize="small" /> : undefined,
+                            true,
+                          )}
+                        </Box>
+                      );
+                    })}
+                  </List>
+                </Collapse>
               </Box>
             ) : null;
           },
@@ -257,7 +321,11 @@ export default function Shell({
             </IconButton>
           </Toolbar>
         </AppBar>
-        <Box component="main" className="app-main" sx={{ p: { xs: 2, sm: 3, lg: 4 }, maxWidth: 1800, mx: 'auto' }}>
+        <Box
+          component="main"
+          className="app-main"
+          sx={{ p: { xs: 2, sm: 3, lg: 4 }, maxWidth: 1800, mx: 'auto' }}
+        >
           {error && (
             <Alert severity="warning" onClose={() => setError('')} sx={{ mb: 2 }}>
               {error}

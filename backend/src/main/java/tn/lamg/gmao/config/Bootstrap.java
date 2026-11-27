@@ -28,7 +28,7 @@ public class Bootstrap implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         if (users.count() != 0) return;
         if (email.isBlank() || password.length() < 12) throw new IllegalStateException(
-            "Premier dÃ©marrage : configurez BOOTSTRAP_EMAIL et BOOTSTRAP_PASSWORD (12 caractÃ¨res minimum)."
+            "Premier démarrage : configurez BOOTSTRAP_EMAIL et BOOTSTRAP_PASSWORD (12 caractères minimum)."
         );
         var u = new UserAccount();
         u.email = email.toLowerCase(java.util.Locale.ROOT);

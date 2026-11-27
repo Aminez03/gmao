@@ -27,7 +27,7 @@ Les ports PostgreSQL et backend restent internes au reseau Compose. Le port HTTP
 
 ## Premier paramétrage métier
 
-1. Créer les utilisateurs et le second validateur technique ; attribuer les six rôles selon les responsabilités. Un seul rôle principal par compte dans cette version.
+1. Créer les utilisateurs et le second validateur technique ; attribuer les quatre rôles selon les responsabilités. Un seul rôle principal par compte dans cette version.
 2. Créer les équipes A/B/C, leurs membres, compétences et habilitations. Générer les postes depuis le planning, affecter 1 à 2 techniciens, contrôler absences et repos, puis publier.
 3. Créer bâtiment → étage → zone → local, puis les équipements. Définir criticités, état, codes et photos/documents. Télécharger et imprimer les QR codes.
 4. Créer une gamme avec ses étapes et la publier. Une gamme publiée est immuable : créer une nouvelle gamme pour une évolution ; les OT conservent leur copie des étapes.
@@ -48,8 +48,8 @@ Les comptes de démonstration utilisent le mot de passe `TestClinique2026!` :
 |---|---|
 | Responsable technique | responsable@clinique.example |
 | Techniciens | ali@clinique.example, sami@clinique.example, nour@clinique.example |
-| Achats | achats@clinique.example |
-| Direction | direction@clinique.example |
+| Administrateur | achats@clinique.example |
+| Administrateur | direction@clinique.example |
 | Prestataire | externe@clinique.example |
 
 Pour essayer le parcours : se connecter comme Ali, ouvrir « Interventions » puis `[DEMO] Intervention a realiser - surveillance pompe`, démarrer après les contrôles de sécurité, compléter la gamme, enregistrer le temps et soumettre. Deux filtres sont réservés sur cette intervention pour essayer la consommation. Se connecter ensuite comme responsable pour valider. Le compte externe permet de consulter la mission et l'intervention qui lui sont affectées. Les opérations clôturées du jeu fictif servent d'exemples consultables dans les achats, réceptions, mouvements et indicateurs.

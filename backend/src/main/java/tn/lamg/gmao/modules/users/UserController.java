@@ -23,8 +23,6 @@ public class UserController {
         "ADMIN",
         "RESPONSABLE_TECHNIQUE",
         "TECHNICIEN",
-        "SERVICE_ACHATS",
-        "DIRECTION",
         "SOUS_TRAITANT"
     );
 
@@ -66,6 +64,8 @@ public class UserController {
                     return Map.<String, Object>of(
                         "id",
                         u.id,
+                        "displayNumber",
+                        u.displayNumber,
                         "name",
                         u.name,
                         "role",
@@ -88,12 +88,12 @@ public class UserController {
             ApiException.require(
                 input.password() != null,
                 "PASSWORD_REQUIRED",
-                "Mot de passe initial obligatoire, Ã  transmettre par canal sÃ©curisÃ©."
+                "Mot de passe initial obligatoire, à transmettre par canal sécurisé."
             );
             var u = new UserAccount();
             apply(u, input);
             u.passwordHash = passwords.encode(input.password());
-            users.saveAndFlush(u);
+            u = users.saveAndFlush(u);
             events.account(u, "CREATE_USER");
             return AuthController.profile(u);
         });
@@ -112,7 +112,7 @@ public class UserController {
             if (!match.equals("\"" + u.version + "\"")) throw new ApiException(
                 412,
                 "VERSION_CONFLICT",
-                "Compte modifiÃ©."
+                "Compte modifié."
             );
             if (
                 u.role.equals("ADMIN") &&
@@ -136,7 +136,7 @@ public class UserController {
     }
 
     void apply(UserAccount u, UserInput input) {
-        ApiException.require(ROLES.contains(input.role()), "ROLE_INVALID", "RÃ´le invalide.");
+        ApiException.require(ROLES.contains(input.role()), "ROLE_INVALID", "Rôle invalide.");
         ApiException.require(
             !input.role().equals("SOUS_TRAITANT") || input.contractorId() != null,
             "CONTRACTOR_REQUIRED",

@@ -52,7 +52,7 @@ public class PlanningController {
                         users
                             .findById(a.userId)
                             .map(u -> u.name)
-                            .orElse("Compte archivÃ©")
+                            .orElse("Compte archivé")
                     )
                     .toList();
                 return Map.of(
@@ -68,7 +68,7 @@ public class PlanningController {
                     s.startsAt.atZone(zone).toLocalDate(),
                     "hours",
                     s.startsAt.atZone(zone).toLocalTime() +
-                        " â€“ " +
+                        " – " +
                         s.endsAt.atZone(zone).toLocalTime(),
                     "technicians",
                     names
@@ -89,7 +89,7 @@ public class PlanningController {
                 b.cycleDays() > 0 &&
                 b.cycleDays() <= 31,
             "ROTATION_INPUT",
-            "DÃ©finissez une pÃ©riode et un cycle de 1 Ã  31 jours."
+            "Définissez une période et un cycle de 1 à 31 jours."
         );
         return commands.run(key, "planning/generate", b, () -> {
             var teams = store
@@ -101,7 +101,7 @@ public class PlanningController {
             ApiException.require(
                 teams.size() == 3,
                 "TEAMS_REQUIRED",
-                "CrÃ©ez les Ã©quipes A, B et C avant gÃ©nÃ©ration."
+                "Créez les équipes A, B et C avant génération."
             );
             store.lock(Team.class, teams.getFirst().id);
             int count = 0;
@@ -118,7 +118,7 @@ public class PlanningController {
                         .anyMatch(s -> s.startsAt.equals(start))
                 ) continue;
                 var shift = new Shift();
-                shift.name = List.of("Matin", "AprÃ¨s-midi", "Nuit").get(n);
+                shift.name = List.of("Matin", "Après-midi", "Nuit").get(n);
                 shift.teamId = teams.get((n + day / b.cycleDays()) % 3).id;
                 shift.startsAt = start;
                 shift.endsAt = start.plus(Duration.ofHours(8));

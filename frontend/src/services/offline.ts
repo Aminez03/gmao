@@ -11,6 +11,36 @@ export const cache = async (user: string, key: string, value: any) =>
   (await db).put('cache', value, `${user}:${key}`);
 export const cached = async (user: string, key: string) =>
   (await db).get('cache', `${user}:${key}`);
+export async function findCachedAssetByQr(user: string, token: string) {
+  const store = (await db).transaction('cache').objectStore('cache');
+  const keys = await store.getAllKeys();
+  for (const key of keys) {
+    if (typeof key !== 'string' || !key.startsWith(`${user}:assets/`)) continue;
+    const asset = await store.get(key);
+    if (asset?.qrToken === token) return asset;
+  }
+  return null;
+}
+export async function downloadFieldData(user: string) {
+  async function downloadCollection(route: string) {
+    let count = 0;
+    let pages = 1;
+    for (let page = 0; page < pages; page++) {
+      const { data } = await api.get(`/${route}`, { params: { page, size: 100 } });
+      pages = data.totalPages || 1;
+      for (const item of data.items || []) {
+        await cache(user, `${route}/${item.id}`, item);
+        count++;
+      }
+    }
+    return count;
+  }
+  const [assets, workOrders] = await Promise.all([
+    downloadCollection('assets'),
+    downloadCollection('work-orders'),
+  ]);
+  return { assets, workOrders };
+}
 export const removeCached = async (user: string, key: string) =>
   (await db).delete('cache', `${user}:${key}`);
 export async function activeProfile(value?: Entity | null) {
@@ -42,6 +72,7 @@ export async function enqueue(user: string, order: Entity, action: string, paylo
     operationId: crypto.randomUUID(),
     userId: user,
     resourceId: order.id,
+    displayNumber: order.displayNumber || order.number || order.code,
     action,
     payload,
     expectedVersion: order.version + others.filter((o) => o.state === 'PENDING').length,
@@ -51,11 +82,17 @@ export async function enqueue(user: string, order: Entity, action: string, paylo
   await (await db).put('operations', operation);
   return operation;
 }
-export async function queuePhoto(user: string, order: Entity, file: File) {
+export async function queuePhoto(
+  user: string,
+  order: Entity,
+  file: File,
+  targetType = 'work-orders',
+) {
   const item = {
     id: crypto.randomUUID(),
     userId: user,
     orderId: order.id,
+    targetType,
     file,
     name: file.name,
     createdAt: new Date().toISOString(),
@@ -70,7 +107,7 @@ export async function synchronize(user: string) {
   const database = await db;
   for (const item of await uploads(user)) {
     const form = new FormData();
-    form.append('targetType', 'work-orders');
+    form.append('targetType', item.targetType || 'work-orders');
     form.append('targetId', item.orderId);
     form.append('file', item.file, item.name);
     const response = await api.post('/files', form);
@@ -102,7 +139,11 @@ export async function synchronize(user: string) {
     ]);
     const result = data[0];
     if (result.state === 'APPLIED') {
-      await cache(user, `work-orders/${op.resourceId}`, result.resource);
+      await cache(
+        user,
+        `${op.action === 'asset-reading' ? 'assets' : 'work-orders'}/${op.resourceId}`,
+        result.resource,
+      );
       if (
         op.action === 'answers' &&
         JSON.stringify(await cached(user, `draft:${op.resourceId}`)) ===

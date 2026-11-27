@@ -13,7 +13,7 @@ Tous les chemins ci-dessous sont préfixés par `/api/v1`. Catalogue de concepti
 - Codes de validation stables tels que `CHECKLIST_REQUIRED`, `UNRESOLVED_ANOMALY`, `INVALID_TRANSITION`, `INSUFFICIENT_STOCK`, `SHIFT_OVERLAP`, `SELF_VALIDATION_FORBIDDEN` ; messages français traduisibles par i18next.
 - `ADMIN` peut réaliser les actions du responsable/achats selon la matrice, avec séparation des tâches conservée. Les ressources externes sont filtrées par entreprise ET mission. Aucun DTO d'entrée ne porte `actorRole`, `verifiedBy` ou un auteur accepté comme identité d'autorité.
 
-Abréviations d'accès : **A** admin ; **R** responsable ; **T** technicien ; **S** achats ; **D** direction ; **E** prestataire. « Lecture métier » signifie droits du tableau du cahier des charges, pas tous les rôles sans restriction. Chaque endpoint, y compris download/export/sync, applique ces droits.
+Abréviations d'accès : **A** admin ; **R** responsable ; **T** technicien ; **E** prestataire. « Lecture métier » signifie droits du tableau du cahier des charges, pas tous les rôles sans restriction. Chaque endpoint, y compris download/export/sync, applique ces droits.
 
 ## Authentification et utilisateurs
 
@@ -120,22 +120,22 @@ Le contrat `PUT /work-orders/{id}` exclut statut, auteur, temps consolidé, vali
 
 | Méthode et chemin | Contrat | Accès |
 |---|---|---|
-| GET, POST `/suppliers` ; GET, PUT, DELETE `/suppliers/{id}` | SupplierInput(code,name,contacts) | A/S ; R lecture ; DELETE archive |
-| GET, POST `/purchase-requests` ; GET, PUT `/purchase-requests/{id}` | RequestInput(workOrderId?,justification,lines[]) | Création A/R/T/S ; lecture par périmètre ; édition brouillon |
+| GET, POST `/suppliers` ; GET, PUT, DELETE `/suppliers/{id}` | SupplierInput(code,name,contacts) | A ; R lecture ; DELETE archive |
+| GET, POST `/purchase-requests` ; GET, PUT `/purchase-requests/{id}` | RequestInput(workOrderId?,justification,lines[]) | Création A/R/T ; lecture par périmètre ; édition brouillon |
 | POST `/purchase-requests/{id}/submit` | demande complète | Demandeur |
 | POST `/purchase-requests/{id}/approve` ; POST `/purchase-requests/{id}/reject` | DecisionInput(reason) | A/R distinct du demandeur, rejet motivé |
 | POST `/purchase-requests/{id}/send-admin` | transmission | A/R |
-| GET, POST `/purchase-orders` ; GET, PUT `/purchase-orders/{id}` | OrderInput(supplierId,requestLines,quantities,prices,currency) | A/S |
-| POST `/purchase-orders/{id}/place` ; POST `/purchase-orders/{id}/cancel` | confirmation ou motif | A/S, quantités reçues protégées |
-| POST `/purchase-requests/{id}/receive` | ReceiptInput(orderId,deliveryReference,lines) | A/S ; raccourci limité aux lignes de cette demande |
-| GET, POST `/goods-receipts` ; GET `/goods-receipts/{id}` | ReceiptInput(orderId,deliveryReference,lines) | A/S ; réception ne crédite pas le disponible |
-| POST `/receipt-lines/{id}/quality-inspections` | QualityInput(accepted,rejected,notes,stockLocationId) | A/S ; R habilité pour contrôle technique |
-| POST `/quality-inspections/{id}/supplier-return` | ReturnInput(quantity,reason) | A/S, mouvement compensatoire si nécessaire |
-| GET, POST `/inventory/items` ; GET, PUT, DELETE `/inventory/items/{id}` | ItemInput(code,name,unit,min,cost,currency) | A/S écrivent ; lecture R/T utile |
-| GET, POST `/inventory/locations` ; PUT, DELETE `/inventory/locations/{id}` | StockLocationInput | A/S ; archive seulement si soldes nuls |
-| GET `/inventory/balances` | article, emplacement, physique, réservé, disponible | A/R/S, T périmètre utile |
-| GET, POST `/inventory/reservations` ; POST `/inventory/reservations/{id}/release` | ReservationInput(workOrderId,itemId,quantity) | A/R/S ; T sur OT propre selon délégation |
-| GET, POST `/inventory/movements` | MovementFilter / MovementInput(kind,balanceId,workOrderId?,reservationId?,quantity,reason) | Lecture métier ; sortie T propre OT, ajustement A/S |
+| GET, POST `/purchase-orders` ; GET, PUT `/purchase-orders/{id}` | OrderInput(supplierId,requestLines,quantities,prices,currency) | A |
+| POST `/purchase-orders/{id}/place` ; POST `/purchase-orders/{id}/cancel` | confirmation ou motif | A, quantités reçues protégées |
+| POST `/purchase-requests/{id}/receive` | ReceiptInput(orderId,deliveryReference,lines) | A ; raccourci limité aux lignes de cette demande |
+| GET, POST `/goods-receipts` ; GET `/goods-receipts/{id}` | ReceiptInput(orderId,deliveryReference,lines) | A ; réception ne crédite pas le disponible |
+| POST `/receipt-lines/{id}/quality-inspections` | QualityInput(accepted,rejected,notes,stockLocationId) | A ; R habilité pour contrôle technique |
+| POST `/quality-inspections/{id}/supplier-return` | ReturnInput(quantity,reason) | A, mouvement compensatoire si nécessaire |
+| GET, POST `/inventory/items` ; GET, PUT, DELETE `/inventory/items/{id}` | ItemInput(code,name,unit,min,cost,currency) | A écrivent ; lecture R/T utile |
+| GET, POST `/inventory/locations` ; PUT, DELETE `/inventory/locations/{id}` | StockLocationInput | A ; archive seulement si soldes nuls |
+| GET `/inventory/balances` | article, emplacement, physique, réservé, disponible | A/R, T périmètre utile |
+| GET, POST `/inventory/reservations` ; POST `/inventory/reservations/{id}/release` | ReservationInput(workOrderId,itemId,quantity) | A/R ; T sur OT propre selon délégation |
+| GET, POST `/inventory/movements` | MovementFilter / MovementInput(kind,balanceId,workOrderId?,reservationId?,quantity,reason) | Lecture métier ; sortie T propre OT, ajustement A |
 | GET, POST `/subcontractors` ; GET, PUT, DELETE `/subcontractors/{id}` | ContractorInput(contacts,skills) | A/R ; E fiche propre en lecture |
 | GET, POST `/contracts` ; GET, PUT, DELETE `/contracts/{id}` | ContractInput(contractorId,reference,dates,scope,documentId) | A/R ; E contrat propre autorisé |
 | GET, POST `/external-interventions` ; GET, PUT `/external-interventions/{id}` | MissionInput(contractId,workOrderId,visit,internalContact) | A/R gèrent ; E lit/rapporte sa mission |
@@ -150,10 +150,10 @@ Une entrée de stock de réception passe par le contrôle qualité, pas par un `
 
 | Méthode et chemin | Contrat | Accès |
 |---|---|---|
-| GET `/reports/dashboard` | filtres période/équipe/équipement → DashboardDto adapté au rôle | A/R/D ; autres rôles vue propre |
-| GET `/reports/maintenance` | indicateurs, séries, périmètre et définitions | A/R/D |
-| GET `/reports/purchases` ; GET `/reports/inventory` | coûts et flux filtrés | A/R/S/D selon colonnes |
-| POST `/reports/exports` ; GET `/reports/exports/{id}` | ExportInput(type,format,filters) → état et lien autorisé | Même droits que le rapport, A/R/S/D |
+| GET `/reports/dashboard` | filtres période/équipe/équipement → DashboardDto adapté au rôle | A/R ; autres rôles vue propre |
+| GET `/reports/maintenance` | indicateurs, séries, périmètre et définitions | A/R |
+| GET `/reports/purchases` ; GET `/reports/inventory` | coûts et flux filtrés | A/R selon colonnes |
+| POST `/reports/exports` ; GET `/reports/exports/{id}` | ExportInput(type,format,filters) → état et lien autorisé | Même droits que le rapport, A/R |
 | GET `/notifications` | page, unreadOnly → NotificationDto | Soi-même |
 | POST `/notifications/{id}/read` ; POST `/notifications/read-all` | marquage lu | Soi-même |
 | GET `/notifications/stream` | flux SSE d'événements sans secret | Session authentifiée, filtre destinataire |

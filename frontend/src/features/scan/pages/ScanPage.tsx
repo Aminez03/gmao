@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Alert, Button, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Html5Qrcode } from 'html5-qrcode';
 import { api, Entity, errorText } from '../../../services/api';
+import { findCachedAssetByQr } from '../../../services/offline';
+import { useAuth } from '../../../app/Auth';
 export default function ScanPage() {
+  const { user } = useAuth();
   const [params] = useSearchParams();
   const [code, setCode] = useState(params.get('code') || '');
   const [asset, setAsset] = useState<Entity | null>(null);
@@ -12,7 +15,19 @@ export default function ScanPage() {
   const scanner = useRef<Html5Qrcode | null>(null);
   async function resolve(value: string) {
     try {
-      const token = value.includes('code=') ? new URL(value).searchParams.get('code') : value;
+      let token = value;
+      try {
+        if (value.includes('code=')) token = new URL(value).searchParams.get('code') || '';
+      } catch {
+        /* QR payload can be a raw token. */
+      }
+      if (!navigator.onLine) {
+        const local = await findCachedAssetByQr(user!.id, token);
+        if (!local) throw new Error('Équipement absent des données téléchargées sur cet appareil.');
+        setAsset(local);
+        setError('');
+        return;
+      }
       const { data } = await api.get(`/assets/by-qr/${token}`);
       setAsset(data);
       setError('');
@@ -41,7 +56,7 @@ export default function ScanPage() {
           <div id="qr-reader" />
           <Button
             variant="contained"
-            disabled={scanning || !navigator.onLine}
+            disabled={scanning}
             onClick={async () => {
               try {
                 const reader = new Html5Qrcode('qr-reader');
@@ -83,19 +98,24 @@ export default function ScanPage() {
             value={code}
             onChange={(e) => setCode(e.target.value)}
           />
-          <Button onClick={() => resolve(code)} disabled={!code || !navigator.onLine}>
+          <Button onClick={() => resolve(code)} disabled={!code}>
             Consulter l’équipement
           </Button>
           {error && <Alert severity="error">{error}</Alert>}
           {asset && (
-            <Alert severity="success">
-              <Typography fontWeight={600}>
-                {asset.code} · {asset.name}
-              </Typography>
-              <Typography>
-                {asset.category} · {asset.status}
-              </Typography>
-            </Alert>
+            <Stack spacing={1}>
+              <Alert severity="success">
+                <Typography fontWeight={600}>
+                  {asset.code} · {asset.name}
+                </Typography>
+                <Typography>
+                  {asset.category} · {asset.status}
+                </Typography>
+              </Alert>
+              <Button component={Link} to={`/m/assets?id=${asset.id}`} variant="contained">
+                Ouvrir la fiche équipement
+              </Button>
+            </Stack>
           )}
         </Stack>
       </Paper>

@@ -1,7 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../app/Auth';
 import { fetchCached } from '../services/offline';
-import { Resource, referenceRoutes, shiftAssignmentLabel, userReferenceFields } from './domain';
+import {
+  Resource,
+  resources,
+  referenceRoutes,
+  shiftAssignmentLabel,
+  userReferenceFields,
+} from './domain';
+import { businessReference } from './businessReference';
 import type { Entity } from '../services/api';
 import { display } from './EntityDisplay';
 export default function ReferenceValue({
@@ -17,12 +24,26 @@ export default function ReferenceValue({
 }) {
   const { user } = useAuth();
   const isUser = userReferenceFields.has(field);
-  const target =
-    field === 'parentId' && resource.route === 'assets' ? 'assets' : referenceRoutes[field];
+  const linkedRoute =
+    field === 'resourceId'
+      ? entity?.resourceType
+      : field === 'targetId'
+        ? entity?.targetType
+        : undefined;
+  const target = linkedRoute
+    ? linkedRoute === 'users'
+      ? 'users'
+      : resources.find((item) => item.route === linkedRoute)?.route
+    : field === 'parentId' && resource.route === 'assets'
+      ? 'assets'
+      : referenceRoutes[field];
 
   const { data } = useQuery({
-    queryKey: ['reference', target, value, user?.id],
-    queryFn: () => fetchCached(user!.id, `${target}/${value}`, `/${target}/${value}`),
+    queryKey: ['reference', target, target === 'users' ? null : value, user?.id],
+    queryFn: () =>
+      target === 'users'
+        ? fetchCached(user!.id, 'users', '/users')
+        : fetchCached(user!.id, `${target}/${value}`, `/${target}/${value}`),
     enabled: !!user && !!target && !!value && !isUser,
     retry: false,
   });
@@ -40,5 +61,18 @@ export default function ReferenceValue({
     if (!value) return <>{display(value)}</>;
     return <>{data ? shiftAssignmentLabel(data) : 'Affectation indisponible'}</>;
   }
-  return <>{data?.number || data?.code || data?.name || data?.title || display(value)}</>;
+  if (!value) return <>{display(value)}</>;
+  const record = target === 'users' ? data?.items?.find((item: Entity) => item.id === value) : data;
+  return (
+    <>
+      {record
+        ? record.displayNumber ||
+          record.number ||
+          record.code ||
+          record.name ||
+          record.title ||
+          businessReference(record)
+        : 'Référence indisponible'}
+    </>
+  );
 }

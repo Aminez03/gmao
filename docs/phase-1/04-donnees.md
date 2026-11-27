@@ -72,7 +72,7 @@ La colonne Entité donne la **liste complète des entités JPA proposées** pour
 |---|---|---|
 | `facility` / `Facility` BMA | code str(30), name str(160), zone_id str(64), currency char(3) | code unique ; fuseau IANA valide côté service |
 | `app_user` / `User` FBMA | email str(254), password_hash str(255), display_name str(160), active bool, contractor_id ref?(contractor) | unique index sur lower(email) ; compte prestataire lié à une entreprise |
-| `role` / `Role` B | code str(40), label str(100) | code unique, limité aux six rôles du brief |
+| `role` / `Role` B | code str(40), label str(100) | code unique, limité aux quatre rôles du brief |
 | `user_role` / `UserRole` B | user_id ref(app_user), role_id ref(role) | unique(user_id,role_id) |
 | `auth_session` / `AuthSession` B | user_id ref(app_user), family_id uuid, refresh_hash str(128), expires_at instant, revoked_at instant?, replaced_by_id ref?(auth_session), last_used_at instant? | refresh_hash unique ; famille indexée ; jeton en clair absent |
 | `password_reset_token` / `PasswordResetToken` B | user_id ref(app_user), token_hash str(128), expires_at instant, used_at instant? | token_hash unique ; expiration et usage vérifiés atomiquement |

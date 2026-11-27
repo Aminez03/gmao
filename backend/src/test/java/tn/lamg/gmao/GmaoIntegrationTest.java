@@ -35,6 +35,9 @@ class GmaoIntegrationTest {
     @Autowired
     PasswordEncoder passwords;
 
+    @Autowired
+    org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry r) {
         r.add("spring.datasource.url", () -> System.getenv("GMAO_TEST_URL"));
@@ -173,6 +176,180 @@ class GmaoIntegrationTest {
                 "criticality",
                 "C1"
             )
+        );
+    }
+
+    @Test
+    void businessReferencesAreGeneratedSearchableAndStable() throws Exception {
+        var first = create(
+            admin,
+            "teams",
+            Map.of("code", UUID.randomUUID().toString(), "name", "Equipe test")
+        );
+        var second = create(
+            admin,
+            "teams",
+            Map.of("code", UUID.randomUUID().toString(), "name", "Equipe test")
+        );
+        String reference = first.path("displayNumber").asText();
+        assertTrue(reference.matches("EQP-[0-9]{3,}"), reference);
+        assertNotEquals(reference, second.path("displayNumber").asText());
+        UUID.fromString(first.path("id").asText());
+        var result = read(
+            mvc
+                .perform(
+                    get("/api/v1/teams")
+                        .header("Authorization", "Bearer " + admin)
+                        .param("search", reference)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+        );
+        assertEquals(first.get("id"), result.path("items").get(0).get("id"));
+        var updated = read(
+            mvc
+                .perform(
+                    put("/api/v1/teams/" + first.path("id").asText())
+                        .header("Authorization", "Bearer " + admin)
+                        .header("Idempotency-Key", UUID.randomUUID())
+                        .header("If-Match", "\"" + first.path("version").asLong() + "\"")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            json.writeValueAsString(
+                                Map.of("fields", Map.of("name", "Equipe modifiée"))
+                            )
+                        )
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+        );
+        assertEquals(reference, updated.path("displayNumber").asText());
+        assertEquals(first.get("id"), updated.get("id"));
+
+        mvc.perform(
+            post("/api/v1/teams")
+                .header("Authorization", "Bearer " + admin)
+                .header("Idempotency-Key", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    json.writeValueAsString(
+                        Map.of(
+                            "fields",
+                            Map.of(
+                                "name",
+                                "Injection",
+                                "code",
+                                UUID.randomUUID().toString(),
+                                "displayNumber",
+                                "EQP-999"
+                            )
+                        )
+                    )
+                )
+        )
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(jsonPath("code").value("SERVER_FIELD"));
+    }
+
+    @Test
+    void workOrderNumbersMatchTheirVisibleReferenceAndKeepAssetLinks() throws Exception {
+        var equipment = asset();
+        assertTrue(equipment.path("displayNumber").asText().matches("EQ-[0-9]{3,}"));
+        var order = create(
+            admin,
+            "work-orders",
+            Map.of(
+                "title",
+                "Numérotation",
+                "description",
+                "Test référence",
+                "priority",
+                "P2",
+                "assetId",
+                equipment.path("id").asText(),
+                "type",
+                "CORRECTIVE"
+            )
+        );
+        assertTrue(order.path("number").asText().matches("OT-[0-9]{3,}"));
+        assertEquals(order.get("number"), order.get("displayNumber"));
+        assertEquals(equipment.get("id"), order.get("assetId"));
+        var detail = read(
+            mvc
+                .perform(
+                    get("/api/v1/assets/" + equipment.path("id").asText()).header(
+                        "Authorization",
+                        "Bearer " + admin
+                    )
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+        );
+        assertEquals(equipment.get("qrToken"), detail.get("qrToken"));
+    }
+
+    @Test
+    void numberingDoesNotTruncateAtOneThousandAndJournalsStayImmutable() throws Exception {
+        create(admin, "teams", Map.of("code", UUID.randomUUID().toString(), "name", "Journal"));
+        assertEquals(
+            "EQ-001",
+            jdbc.queryForObject("select format_business_number('EQ', 1)", String.class)
+        );
+        assertEquals(
+            "EQ-999",
+            jdbc.queryForObject("select format_business_number('EQ', 999)", String.class)
+        );
+        assertEquals(
+            "EQ-1000",
+            jdbc.queryForObject("select format_business_number('EQ', 1000)", String.class)
+        );
+        assertEquals(
+            2,
+            jdbc.queryForObject(
+                "select count(*) from pg_trigger where tgname in ('protect_audit', 'protect_stock_movements') and tgenabled = 'O'",
+                Integer.class
+            )
+        );
+        assertThrows(org.springframework.dao.DataAccessException.class, () ->
+            jdbc.update(
+                "update audit_event set action = action where id = (select id from audit_event limit 1)"
+            )
+        );
+    }
+
+    @Test
+    void removedRolesAreRejectedAndAdminKeepsReportingAccess() throws Exception {
+        long before = users.count();
+        for (String removedRole : List.of("DIRECTION", "SERVICE_ACHATS")) {
+            mvc.perform(
+                post("/api/v1/users")
+                    .header("Authorization", "Bearer " + admin)
+                    .header("Idempotency-Key", UUID.randomUUID())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        json.writeValueAsString(
+                            Map.of(
+                                "email",
+                                UUID.randomUUID() + "@test.invalid",
+                                "name",
+                                "Role retire",
+                                "role",
+                                removedRole,
+                                "password",
+                                "Integration-test-1234"
+                            )
+                        )
+                    )
+            )
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("code").value("ROLE_INVALID"));
+        }
+        assertEquals(before, users.count());
+        mvc.perform(get("/api/v1/reports/dashboard").header("Authorization", "Bearer " + admin))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("costScope").isString());
+        mvc.perform(get("/api/v1/users").header("Authorization", "Bearer " + admin)).andExpect(
+            status().isOk()
         );
     }
 
@@ -584,7 +761,7 @@ class GmaoIntegrationTest {
 
     @Test
     void purchasePartialQualityCreditsOnlyAcceptedQuantity() throws Exception {
-        String requester = account("SERVICE_ACHATS");
+        String requester = account("ADMIN");
         var item = create(
             admin,
             "inventory/items",

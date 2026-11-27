@@ -1,13 +1,8 @@
-export type UserRole =
-  | 'ADMIN'
-  | 'RESPONSABLE_TECHNIQUE'
-  | 'TECHNICIEN'
-  | 'SERVICE_ACHATS'
-  | 'DIRECTION'
-  | 'SOUS_TRAITANT';
+export type UserRole = 'ADMIN' | 'RESPONSABLE_TECHNIQUE' | 'TECHNICIEN' | 'SOUS_TRAITANT';
 
 export interface UserProfile {
   id: string;
+  displayNumber?: string;
   email: string;
   name: string;
   role: UserRole;

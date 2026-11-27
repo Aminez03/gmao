@@ -35,9 +35,15 @@ api.interceptors.response.use(
     throw error;
   },
 );
-type ApiFailure = { response?: { data?: { detail?: string } }; message?: string };
+type ApiFailure = { response?: { data?: { detail?: string } }; message?: string; code?: string };
 export const errorText = (error: unknown) => {
   const failure = error as ApiFailure | null;
+  if (!failure?.response) {
+    if (failure?.code === 'ERR_NETWORK' || failure?.message === 'Network Error')
+      return 'Connexion au serveur impossible. Vérifiez votre réseau puis réessayez.';
+    if (failure?.code === 'ECONNABORTED' || failure?.code === 'ETIMEDOUT')
+      return 'Le serveur met trop de temps à répondre. Réessayez dans quelques instants.';
+  }
   return failure?.response?.data?.detail || failure?.message || 'Une erreur est survenue.';
 };
 export const headers = (version?: number, key = crypto.randomUUID()) => ({

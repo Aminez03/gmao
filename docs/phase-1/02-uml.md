@@ -16,8 +16,8 @@ flowchart LR
     T --> U6([Renseigner checklist, mesures et temps])
     T --> U7([Transmettre et accuser les consignes])
     T --> U8([Saisir hors ligne et synchroniser])
-    S[Service achats] --> U9([Commander, réceptionner et gérer le stock])
-    D[Direction] --> U10([Consulter les indicateurs et exports])
+    A --> U9([Commander, réceptionner et gérer le stock])
+    A --> U10([Consulter les indicateurs et exports])
     E[Sous-traitant] --> U11([Traiter ses missions et remettre un rapport])
     H[Scheduler interne] --> U12([Générer les échéances et alertes])
     U5 --> U6

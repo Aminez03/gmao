@@ -64,12 +64,7 @@ public class DtoMapper {
 
     private Map<String, Object> values(BaseEntity entity) {
         var values = new LinkedHashMap<String, Object>();
-        boolean costs = current.has(
-            "ADMIN",
-            "RESPONSABLE_TECHNIQUE",
-            "SERVICE_ACHATS",
-            "DIRECTION"
-        );
+        boolean costs = current.has("ADMIN", "RESPONSABLE_TECHNIQUE");
         try {
             for (Field f : entity.getClass().getFields()) {
                 if (

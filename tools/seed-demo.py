@@ -167,8 +167,8 @@ class Demo:
             'email': 'contact@prestataire.example', 'skills': 'Hydraulique'}, {'code': 'PREST-001'})
         for key, name, role in [('responsable', 'Mohamed Ben Salah', 'RESPONSABLE_TECHNIQUE'),
                 ('ali', 'Ali Mansour', 'TECHNICIEN'), ('sami', 'Sami Trabelsi', 'TECHNICIEN'),
-                ('nour', 'Nour Hamdi', 'TECHNICIEN'), ('achats', 'Amira Saidi', 'SERVICE_ACHATS'),
-                ('direction', 'Leila Ahmed', 'DIRECTION'), ('externe', 'Karim Maintenance', 'SOUS_TRAITANT')]:
+                ('nour', 'Nour Hamdi', 'TECHNICIEN'), ('achats', 'Amira Saidi', 'ADMIN'),
+                ('direction', 'Leila Ahmed', 'ADMIN'), ('externe', 'Karim Maintenance', 'SOUS_TRAITANT')]:
             self.user(key, name, role, contractor['id'] if key == 'externe' else None)
         print('Comptes de demonstration disponibles.', flush=True)
 

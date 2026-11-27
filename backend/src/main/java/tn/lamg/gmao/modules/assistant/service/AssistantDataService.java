@@ -206,12 +206,7 @@ public class AssistantDataService {
                 return true;
             })
             .toList();
-        boolean financial = current.has(
-            "ADMIN",
-            "RESPONSABLE_TECHNIQUE",
-            "DIRECTION",
-            "SERVICE_ACHATS"
-        );
+        boolean financial = current.has("ADMIN", "RESPONSABLE_TECHNIQUE");
         List<Map<String, Object>> projected = matches
             .stream()
             .limit(LIMIT)
@@ -317,7 +312,10 @@ public class AssistantDataService {
                 ? Objects.toString(users.get("userId"), "Fiche")
                 : "Fiche";
         String code = Objects.toString(
-            row.getOrDefault("number", row.getOrDefault("code", "")),
+            row.getOrDefault(
+                "displayNumber",
+                row.getOrDefault("number", row.getOrDefault("code", ""))
+            ),
             ""
         );
         String name = Objects.toString(

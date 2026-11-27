@@ -30,7 +30,7 @@ public class NotificationJobs {
             "status not in ('VALIDEE','ANNULEE') and priority='P1'"
         );
         alert(
-            "Consigne sans accusÃ© de rÃ©ception",
+            "Consigne sans accusé de réception",
             "handovers",
             "handover",
             "acknowledged_at is null and r.created_at<now()-interval '15 minutes'"

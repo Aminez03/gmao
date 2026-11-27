@@ -37,7 +37,7 @@ public class ReportController {
         current.get();
         Instant end = to == null ? Instant.now() : to;
         Instant start = from == null ? end.minus(Duration.ofDays(30)) : from;
-        ApiException.require(start.isBefore(end), "REPORT_DATES", "PÃ©riode invalide.");
+        ApiException.require(start.isBefore(end), "REPORT_DATES", "Période invalide.");
         var orders = store
             .all(WorkOrder.class)
             .stream()
@@ -159,7 +159,7 @@ public class ReportController {
             .filter(w -> w.type.equals("CORRECTIVE") && !w.status.equals("ANNULEE"))
             .count();
         result.put("mtbfHours", failures == 0 ? null : (observed - down) / 3600 / failures);
-        if (current.has("ADMIN", "RESPONSABLE_TECHNIQUE", "DIRECTION", "SERVICE_ACHATS")) {
+        if (current.has("ADMIN", "RESPONSABLE_TECHNIQUE")) {
             var ids = orders
                 .stream()
                 .map(w -> w.id)
@@ -263,7 +263,7 @@ public class ReportController {
         @RequestParam(required = false) UUID teamId,
         @RequestParam(required = false) UUID assetId
     ) throws Exception {
-        current.require("ADMIN", "RESPONSABLE_TECHNIQUE", "DIRECTION", "SERVICE_ACHATS");
+        current.require("ADMIN", "RESPONSABLE_TECHNIQUE");
         var data = (Map<?, ?>) dashboard(from, to, teamId, assetId);
         var out = new ByteArrayOutputStream();
         String mime;

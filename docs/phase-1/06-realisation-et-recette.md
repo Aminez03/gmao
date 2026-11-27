@@ -10,7 +10,7 @@ Priorités : P0 = condition de sécurité ou de cohérence ; P1 = fonctionnement
 | B02 | P0 / 2 | En tant que développeur, disposer du schéma Flyway, des contraintes et d'un jeu de données de test indépendant. | B01 | V02 |
 | B03 | P0 / 2 | Reprendre l'ébauche, corriger les incohérences et compiler une base testée, sans perdre les données éventuelles. | B01 | V02 |
 | B04 | P0 / 3 | Se connecter avec session rotative, déconnexion, reset et protections anti-abus. | B02/B03 | V03 |
-| B05 | P0 / 3 | Administrer comptes et six rôles ; appliquer capacités et périmètres à toutes les routes/API. | B04 | V04 |
+| B05 | P0 / 3 | Administrer comptes et quatre rôles ; appliquer capacités et périmètres à toutes les routes/API. | B04 | V04 |
 | B06 | P0 / 3 | Tracer les actions, versions et événements ; erreurs uniformes et audit sans secrets. | B04 | V05 |
 | B07 | P1 / 4 | Gérer équipes, compétences, postes, absences et remplacements sans chevauchement. | B05 | V06 |
 | B08 | P0 / 4 | Publier un planning couvert et transmettre les consignes avec accusés et alertes. | B07/B06 | V07 |
@@ -25,7 +25,7 @@ Priorités : P0 = condition de sécurité ou de cohérence ; P1 = fonctionnement
 | B17 | P1 / 10 | Installer la PWA, accéder aux fiches par QR et utiliser les écrans tactiles. | B09/B12 | V15 |
 | B18 | P0 / 10 | Préserver les saisies hors ligne, rejouer sans doublon et résoudre les conflits explicitement. | B17/B06/B10 | V16 |
 | B19 | P1 / transverse | Recevoir les alertes in-app persistées, suivre les erreurs et relancer après coupure. | B06 puis événements de chaque module | V17 |
-| B20 | P1 / 11 | Afficher les dashboards technique/direction et KPI à partir des données réelles. | B11/B12/B14/B16 | V18 |
+| B20 | P1 / 11 | Afficher les dashboards technique/administrateur et KPI à partir des données réelles. | B11/B12/B14/B16 | V18 |
 | B21 | P2 / 11 | Exporter PDF/Excel avec mêmes filtres et permissions, protection des formules tableur. | B20 | V18 |
 | B22 | P1 / transverse | Offrir français par défaut, accessibilité, thème sombre et interface responsive. | Dès B04 et chaque lot | V19 |
 | B23 | P0 / 12 | Livrer Compose, healthchecks, HTTPS, sauvegarde/restauration et monitoring. | Préparation B02, finalisation tous lots | V20 |
@@ -70,7 +70,7 @@ Jalons : M0 validation phase 1 ; M1 identité et planning (fin S6) ; M2 cycle te
 | Versions 3.x ou bibliothèques non maintenues | Moyenne / fort | Vérifier support, dépendances et correctifs au lancement ; décision formalisée si contrainte incompatible. | Lead technique |
 | Panne mono-hôte ou sauvegarde inutilisable | Moyenne / critique | Architecture d'hébergement adaptée, sauvegarde hors hôte et exercice de restauration mesuré. | Exploitation |
 | Fichiers malveillants ou photos sensibles | Moyenne / fort | Types et tailles contrôlés, scan/quarantaine, buckets privés et consignes de prise de photo. | Sécurité + métier |
-| KPI inexacts | Moyenne / fort | Définition validée, périodes stables, données de référence et rapprochement manuel. | Direction + QA |
+| KPI inexacts | Moyenne / fort | Définition validée, périodes stables, données de référence et rapprochement manuel. | Administration + QA |
 | Consigne critique non reçue | Moyenne / critique | Accusé et escalade, procédure de transmission orale/téléphonique en secours. | Responsable technique |
 | Notification perdue ou mail indisponible | Moyenne / moyen | Outbox, reprise, déduplication et centre in-app indépendant de SMTP. | Backend/exploitation |
 
@@ -83,7 +83,7 @@ Chaque critère ci-dessous exige une preuve conservée : rapport de test, captur
 | V01 | Les 12 livrables sont accessibles, les choix ouverts sont consignés, le commanditaire approuve périmètre, règles, ressources et architecture avant démarrage de phase 2. |
 | V02 | Migration sur PostgreSQL vierge et copie représentative réussie ; FK, unicités, archives et absence de perte vérifiées ; aucune dépendance Java manquante ; scripts historiques non exécutés en double. |
 | V03 | Connexion valide/invalide, limitation, expiration, rotation refresh, rejeu de refresh, logout et reset testés ; un token révoqué n'accède plus aux données. Aucun secret dans les logs ni stockage navigateur persistant. |
-| V04 | Pour les six rôles, tester appels autorisés et refusés, liens directs, exports, fichiers et sync. Prestataire A ne lit ni ne modifie une mission de B ; changement de rôle effectif immédiatement. |
+| V04 | Pour les quatre rôles, tester appels autorisés et refusés, liens directs, exports, fichiers et sync. Prestataire A ne lit ni ne modifie une mission de B ; changement de rôle effectif immédiatement. |
 | V05 | Transition et auteur serveur retrouvables ; rôle falsifié dans un corps HTTP ignoré/refusé ; rollback sans journal de succès ; audit consultable uniquement dans le périmètre autorisé. |
 | V06 | Poste nuit 22:00–06:00 correctement daté ; double affectation, absence chevauchante et habilitation expirée refusées ; remplacement et repos paramétrés contrôlés ; poste découvert signalé. |
 | V07 | Consigne d'un poste entrant accusée par le bon utilisateur, date serveur conservée, alerte après seuil ; accusé d'une autre équipe refusé ; modification d'une consigne reçue impossible, addendum traçable. |

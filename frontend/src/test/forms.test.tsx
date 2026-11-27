@@ -43,6 +43,22 @@ describe('Formulaires métier', () => {
     );
     fireEvent.submit(screen.getByRole('button', { name: 'Enregistrer' }).closest('form')!);
     await screen.findByText('Conflit de version');
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveFocus());
     expect(screen.getByLabelText(/Intitulé/)).toHaveValue('Pompe');
+  });
+  it('signale une gamme sans étape avant de contacter le serveur', async () => {
+    const save = vi.fn();
+    render(
+      <ResourceForm
+        fields={[{ name: 'steps', type: 'j', required: true }]}
+        initial={{ steps: [] }}
+        onSave={save}
+        onCancel={() => {}}
+      />,
+    );
+    fireEvent.submit(screen.getByRole('button', { name: 'Enregistrer' }).closest('form')!);
+    await screen.findByText('Ajoutez entre 1 et 100 étapes à la gamme.');
+    expect(screen.getByRole('alert')).toHaveTextContent('Enregistrement impossible');
+    expect(save).not.toHaveBeenCalled();
   });
 });

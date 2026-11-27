@@ -11,16 +11,59 @@ vi.mock('../app/Auth', () => ({
 vi.mock('../services/offline', () => ({ fetchCached: vi.fn() }));
 afterEach(cleanup);
 
-function renderReference(field: string, value?: string, userNames = {}) {
+function renderReference(field: string, value?: string, userNames = {}, entity = {}) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <ReferenceValue field={field} value={value} resource={resources[0]} entity={{ userNames }} />
+      <ReferenceValue
+        field={field}
+        value={value}
+        resource={resources[0]}
+        entity={{ userNames, ...entity }}
+      />
     </QueryClientProvider>,
   );
 }
 
 describe('Noms dans les colonnes utilisateurs', () => {
+  it('affiche la référence du compte concerné par un événement d’audit', async () => {
+    vi.mocked(fetchCached).mockResolvedValueOnce({
+      items: [{ id: 'account-id', displayNumber: 'UT-001', name: 'Nour Ben Salem' }],
+    });
+    renderReference('resourceId', 'account-id', {}, { resourceType: 'users' });
+    expect(await screen.findByText('UT-001')).toBeInTheDocument();
+    expect(fetchCached).toHaveBeenCalledWith('current-user', 'users', '/users');
+  });
+  it('privilégie le numéro métier de la fiche liée', async () => {
+    vi.mocked(fetchCached).mockResolvedValueOnce({
+      displayNumber: 'EQ-001',
+      code: 'Ancien code',
+      name: 'Pompe',
+    });
+    renderReference('assetId', '8054a5b2-1234-4567-8910-123456789abc');
+    expect(await screen.findByText('EQ-001')).toBeInTheDocument();
+    expect(screen.queryByText('8054a5b2')).not.toBeInTheDocument();
+  });
+
+  it.each(['targetId', 'resourceId'])('résout la cible polymorphe %s', async (field) => {
+    vi.mocked(fetchCached).mockResolvedValueOnce({
+      displayNumber: 'OT-001',
+      title: 'Intervention',
+    });
+    renderReference(
+      field,
+      'work-id',
+      {},
+      { targetType: 'work-orders', resourceType: 'work-orders' },
+    );
+    expect(await screen.findByText('OT-001')).toBeInTheDocument();
+    expect(fetchCached).toHaveBeenCalledWith(
+      'current-user',
+      'work-orders/work-id',
+      '/work-orders/work-id',
+    );
+  });
+
   it.each([...userReferenceFields])('affiche le nom pour %s sans requête de compte', (field) => {
     renderReference(field, 'user-uuid', { [field]: 'Nour Ben Salem' });
     expect(screen.getByText('Nour Ben Salem')).toBeInTheDocument();

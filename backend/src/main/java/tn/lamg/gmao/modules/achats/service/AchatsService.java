@@ -51,7 +51,7 @@ public class AchatsService extends AbstractModuleResourceService implements Reso
         }
         if (entity instanceof PurchaseRequest request) {
             request.status = "BROUILLON";
-            request.number = "DA-" + request.id.toString().substring(0, 8).toUpperCase();
+            request.number = store.nextNumber("DA", "purchase_request_display_number_seq");
         }
         if (entity instanceof PurchaseOrder order) order.status = "BROUILLON";
         if (entity instanceof GoodsReceipt receipt) {

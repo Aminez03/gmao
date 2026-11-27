@@ -122,9 +122,7 @@ export default function DashboardPage() {
     },
   ];
   const hasFilters = !!(from || to || team || asset);
-  const canExport = ['ADMIN', 'RESPONSABLE_TECHNIQUE', 'DIRECTION', 'SERVICE_ACHATS'].includes(
-    user!.role,
-  );
+  const canExport = ['ADMIN', 'RESPONSABLE_TECHNIQUE'].includes(user!.role);
   const quickLinks = [
     {
       route: 'assets',

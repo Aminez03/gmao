@@ -59,9 +59,9 @@ public class PreventiveService {
         if (prior.isPresent()) return prior.get();
         var c = store.find(Checklist.class, p.checklistId);
         var w = new WorkOrder();
-        w.number = "OT-" + w.id.toString().substring(0, 8).toUpperCase();
+        w.number = store.nextNumber("OT", "work_order_display_number_seq");
         w.title = p.name;
-        w.description = "Maintenance prÃ©ventive planifiÃ©e";
+        w.description = "Maintenance préventive planifiée";
         w.assetId = p.assetId;
         w.planId = p.id;
         w.occurrenceId = occurrence.id;
