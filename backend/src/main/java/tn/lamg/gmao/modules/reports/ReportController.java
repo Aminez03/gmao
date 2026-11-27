@@ -183,39 +183,9 @@ public class ReportController {
                 "Ce total inclut uniquement les pièces consommées. La main-d’œuvre et les prestations sont exclues."
             );
         }
-        var series = new ArrayList<Map<String, Object>>();
-        for (int n = 6; n >= 0; n--) {
-            var day = end.atZone(ZoneId.of("Africa/Tunis")).toLocalDate().minusDays(n);
-            var a = day.atStartOfDay(ZoneId.of("Africa/Tunis")).toInstant();
-            var b = a.plus(Duration.ofDays(1));
-            series.add(
-                Map.of(
-                    "day",
-                    day.toString(),
-                    "preventive",
-                    period
-                        .stream()
-                        .filter(
-                            w ->
-                                w.type.equals("PREVENTIVE") &&
-                                !w.createdAt.isBefore(a) &&
-                                w.createdAt.isBefore(b)
-                        )
-                        .count(),
-                    "corrective",
-                    period
-                        .stream()
-                        .filter(
-                            w ->
-                                w.type.equals("CORRECTIVE") &&
-                                !w.createdAt.isBefore(a) &&
-                                w.createdAt.isBefore(b)
-                        )
-                        .count()
-                )
-            );
-        }
-        result.put("series", series);
+        var activity = MaintenanceActivity.build(start, end, period);
+        result.put("series", activity.series());
+        result.put("activityGrouping", activity.grouping());
         result.put("from", start);
         result.put("to", end);
         return result;

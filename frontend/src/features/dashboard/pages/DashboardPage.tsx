@@ -466,7 +466,12 @@ export default function DashboardPage() {
             <Typography variant="h6">Activité de maintenance</Typography>
           </Stack>
           <Typography color="text.secondary" variant="body2" mb={3}>
-            Interventions créées · sept derniers jours de la période
+            Interventions créées · toute la période · par{' '}
+            {data?.activityGrouping === 'month'
+              ? 'mois'
+              : data?.activityGrouping === 'week'
+                ? 'semaine'
+                : 'jour'}
           </Typography>
           <Box sx={{ height: 290, minWidth: 0 }}>
             {isLoading ? (
@@ -505,7 +510,11 @@ export default function DashboardPage() {
                   />
                   <XAxis
                     dataKey="day"
-                    tickFormatter={(v) => `${v.slice(8, 10)}/${v.slice(5, 7)}`}
+                    tickFormatter={(v: string) =>
+                      data?.activityGrouping === 'month'
+                        ? `${v.slice(5, 7)}/${v.slice(0, 4)}`
+                        : `${v.slice(8, 10)}/${v.slice(5, 7)}`
+                    }
                     tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
                     tickLine={false}
                     axisLine={false}
@@ -525,7 +534,14 @@ export default function DashboardPage() {
                       borderRadius: 12,
                       color: theme.palette.text.primary,
                     }}
-                    labelFormatter={(value) => display(`${value}T12:00:00`)}
+                    labelFormatter={(value) => {
+                      const bucket = data?.series?.find((item: Entity) => item.day === value);
+                      const dateLabel = (date: string) =>
+                        new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR');
+                      return bucket && bucket.lastDay !== value
+                        ? `Du ${dateLabel(String(value))} au ${dateLabel(bucket.lastDay)}`
+                        : dateLabel(String(value));
+                    }}
                   />
                   <Legend />
                   <Bar
